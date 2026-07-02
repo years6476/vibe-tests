@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — SocialFeed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Wrapper ── */
+    .wrapper {
+      width: 100%;
+      max-width: 420px;
+      padding: 44px 28px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Logo ── */
+    .logo {
+      margin-bottom: 26px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .logo img {
+      width: 190px;
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* ── Heading ── */
+    .welcome {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      text-align: center;
+      margin-bottom: 6px;
+      letter-spacing: -0.2px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #999;
+      text-align: center;
+      margin-bottom: 26px;
+      font-weight: 400;
+    }
+
+    /* ── Form ── */
+    .form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Input group (label + field) ── */
+    .input-group {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      padding-left: 2px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 9px 13px;
+      border: 1.5px solid #e8e8e8;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      outline: none;
+    }
+
+    .input-group input:focus {
+      border-color: #8A4FF7;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(138, 79, 247, 0.1);
+    }
+
+    .input-group input::placeholder {
+      color: #c8c8c8;
+    }
+
+    /* ── Username wrapper (for @ prefix + status icon) ── */
+    .uname-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .uname-wrap .at-prefix {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: #b0b0b0;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    .uname-wrap input {
+      padding-left: 26px;
+      padding-right: 34px;
+    }
+
+    .uname-status-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .uname-status-icon svg { display: block; }
+
+    /* Checking spinner */
+    .uname-status-icon.checking {
+      display: flex;
+      border: 2px solid #e8e8e8;
+      border-top-color: #8A4FF7;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    .uname-status-icon.checking svg { display: none; }
+
+    .uname-status-icon.available { display: flex; color: #22a35a; }
+    .uname-status-icon.taken     { display: flex; color: #d63b3b; }
+
+    /* Helper / status text under the username field */
+    .uname-hint {
+      font-size: 12px;
+      padding-left: 2px;
+      color: #999;
+      min-height: 15px;
+    }
+    .uname-hint.available { color: #22a35a; font-weight: 500; }
+    .uname-hint.taken      { color: #d63b3b; font-weight: 500; }
+    .uname-hint.invalid    { color: #d63b3b; }
+
+    /* ── Password wrapper (for eye icon positioning) ── */
+    .pw-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .pw-wrap input {
+      padding-right: 48px;
+    }
+
+    /* ── Password toggle (SVG) ── */
+    .toggle-pw {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #c0c0c0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+      line-height: 0;
+    }
+    .toggle-pw:hover { color: #8A4FF7; }
+    .toggle-pw svg   { display: block; }
+
+    /* ── Error message ── */
+    .error-msg {
+      display: none;
+      color: #d63b3b;
+      font-size: 13px;
+      text-align: center;
+      padding: 10px 14px;
+      background: #fff5f5;
+      border: 1.5px solid #ffd0d0;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+
+    /* ── Signup button ── */
+    .login-btn {
+      width: 100%;
+      padding: 10px;
+      background: linear-gradient(to right, #6C3EF4, #8A4FF7, #A65CF8);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      margin-top: 2px;
+      position: relative;
+      letter-spacing: 0.2px;
+    }
+
+    .login-btn:hover:not(:disabled) {
+      opacity: 0.91;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(108, 62, 244, 0.28);
+    }
+
+    .login-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    /* Loading spinner inside button */
+    .login-btn.loading { color: transparent; }
+
+    .login-btn.loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid rgba(255, 255, 255, 0.35);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* ── Login link ── */
+    .signup-text {
+      font-size: 13px;
+      color: #999;
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .signup-text a {
+      color: #8A4FF7;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+    .signup-text a:hover { opacity: 0.8; text-decoration: underline; }
+
+    /* ── Illustration — full width ── */
+    .illustration {
+      width: 100%;
+      margin-top: 80px;
+      line-height: 0;
+    }
+
+    .illustration img {
+      width: 100%;
+      height: auto;
+      display: block;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .wrapper  { padding: 34px 20px 0; }
+      .welcome  { font-size: 20px; }
+      .logo img { width: 165px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Main wrapper ── -->
+  <div class="wrapper">
+
+    <!-- Logo -->
+    <div class="logo">
+      <img
+        src="https://i.ibb.co/67rjXd2D/file-0000000035747207811bfdf654b4a6ef-1.jpg"
+        alt="SocialFeed Logo"
+        draggable="false"
+      />
+    </div>
+
+    <!-- Heading -->
+    <h1 class="welcome">Create an account</h1>
+    <p class="subtitle">Sign up to get started</p>
+
+    <!-- Form -->
+    <div class="form">
+
+      <!-- Name -->
+      <div class="input-group">
+        <label class="input-label" for="nameInput">Full Name</label>
+        <input
+          type="text"
+          id="nameInput"
+          placeholder="Enter your full name"
+          autocomplete="name"
+        />
+      </div>
+
+      <!-- Username -->
+      <div class="input-group">
+        <label class="input-label" for="usernameInput">Username</label>
+        <div class="uname-wrap">
+          <span class="at-prefix">@</span>
+          <input
+            type="text"
+            id="usernameInput"
+            placeholder="choose_a_username"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            maxlength="20"
+          />
+          <span class="uname-status-icon" id="unameStatusIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+        </div>
+        <p class="uname-hint" id="unameHint">Letters, numbers & underscore only · 3–20 characters</p>
+      </div>
+
+      <!-- Email -->
+      <div class="input-group">
+        <label class="input-label" for="emailInput">Email</label>
+        <input
+          type="email"
+          id="emailInput"
+          placeholder="Enter your email"
+          autocomplete="email"
+          inputmode="email"
+        />
+      </div>
+
+      <!-- Password -->
+      <div class="input-group">
+        <label class="input-label" for="passwordInput">Password</label>
+        <div class="pw-wrap">
+          <input
+            type="password"
+            id="passwordInput"
+            placeholder="Create a password"
+            autocomplete="new-password"
+          />
+          <button class="toggle-pw" id="togglePw" type="button" aria-label="Show password">
+            <!-- Eye icon (default: password hidden) -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div class="error-msg" id="errorMsg"></div>
+
+      <!-- Signup button -->
+      <button class="login-btn" id="signupBtn">Sign Up</button>
+
+    </div>
+
+    <!-- Login -->
+    <p class="signup-text">
+      Already have an account? <a href="/login">Log in</a>
+    </p>
+
+  </div>
+
+  <!-- Illustration — full width -->
+  <div class="illustration">
+    <img
+      src="https://i.ibb.co.com/DyV9tDW/file-00000000dfb871faa658852ecbb02a4b-1-removebg-preview.png"
+      alt="Illustration"
+      draggable="false"
+    />
+  </div>
+
+
+  <!-- ── Firebase Logic (ES Module) ── -->
+  <script type="module">
+    import { auth, db } from "./config.js";
+    import {
+      createUserWithEmailAndPassword,
+      updateProfile,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import {
+      ref,
+      get,
+      set
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+    const nameInput       = document.getElementById("nameInput");
+    const usernameInput   = document.getElementById("usernameInput");
+    const unameStatusIcon = document.getElementById("unameStatusIcon");
+    const unameHint       = document.getElementById("unameHint");
+    const emailInput      = document.getElementById("emailInput");
+    const passwordInput   = document.getElementById("passwordInput");
+    const signupBtn       = document.getElementById("signupBtn");
+    const errorMsg        = document.getElementById("errorMsg");
+    const togglePw        = document.getElementById("togglePw");
+
+    const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+    const CROSS_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    // ── SVG icons ────────────────────────────────────────────
+    const EYE_ICON = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>`;
+
+    const EYE_OFF_ICON = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8
+                 a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1
+                 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19
+                 m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>`;
+
+    // ── Already logged in ─ redirect ────────────────────────
+    onAuthStateChanged(auth, (user) => {
+      if (user) window.location.href = "/";
+    });
+
+    // ── Password show / hide ─────────────────────────────────
+    togglePw.addEventListener("click", () => {
+      const hidden = passwordInput.type === "password";
+      passwordInput.type   = hidden ? "text" : "password";
+      togglePw.innerHTML   = hidden ? EYE_OFF_ICON : EYE_ICON;
+      togglePw.setAttribute("aria-label", hidden ? "Hide password" : "Show password");
+    });
+
+    // ── Username availability check ──────────────────────────
+    // users/{uid} node একবার পড়ে নিয়ে cache করা হয়, বারবার fetch করা হয় না।
+    let _usersCache      = null; // Set of lowercase usernames already taken
+    let _usersCachePromise = null;
+    let _unameCheckToken  = 0;   // race-condition guard (আগের চেক ফলাফল যেন পরের চেকের উপর ওভাররাইট না করে)
+    let usernameState     = { value: "", valid: false }; // submit-এর সময় ব্যবহৃত হবে
+
+    async function loadUsersCache() {
+      if (_usersCache) return _usersCache;
+      if (_usersCachePromise) return _usersCachePromise;
+      _usersCachePromise = get(ref(db, "users")).then((snap) => {
+        const set = new Set();
+        if (snap.exists()) {
+          snap.forEach((child) => {
+            const u = child.val()?.username;
+            if (u) set.add(String(u).toLowerCase());
+          });
+        }
+        _usersCache = set;
+        return set;
+      }).catch((e) => {
+        console.error("users cache load error", e);
+        _usersCache = new Set(); // fail-open: network সমস্যায় ব্লক করে ইউজারকে আটকাবো না, submit-এর সময় আবার চেক হবে
+        return _usersCache;
+      });
+      return _usersCachePromise;
+    }
+    loadUsersCache(); // পেইজ লোড হওয়ার সাথে সাথেই ব্যাকগ্রাউন্ডে প্রি-ফেচ শুরু
+
+    function setUnameIcon(state) {
+      unameStatusIcon.className = "uname-status-icon";
+      if (state === "checking") {
+        unameStatusIcon.classList.add("checking");
+        unameStatusIcon.innerHTML = "";
+      } else if (state === "available") {
+        unameStatusIcon.classList.add("available");
+        unameStatusIcon.innerHTML = CHECK_ICON;
+      } else if (state === "taken" || state === "invalid") {
+        unameStatusIcon.classList.add("taken");
+        unameStatusIcon.innerHTML = CROSS_ICON;
+      } else {
+        unameStatusIcon.innerHTML = "";
+      }
+    }
+
+    function setUnameHint(text, cls) {
+      unameHint.textContent = text;
+      unameHint.className   = "uname-hint" + (cls ? ` ${cls}` : "");
+    }
+
+    const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+
+    async function checkUsername(raw) {
+      const myToken = ++_unameCheckToken;
+      const value = raw.trim().toLowerCase();
+
+      if (!value) {
+        usernameState = { value: "", valid: false };
+        setUnameIcon(null);
+        setUnameHint("Letters, numbers & underscore only · 3–20 characters", "");
+        return;
+      }
+
+      if (!USERNAME_RE.test(value)) {
+        usernameState = { value, valid: false };
+        setUnameIcon("invalid");
+        setUnameHint("Only lowercase letters, numbers & underscore, 3–20 characters", "invalid");
+        return;
+      }
+
+      setUnameIcon("checking");
+      setUnameHint("Checking availability…", "");
+
+      const cache = await loadUsersCache();
+      if (myToken !== _unameCheckToken) return; // ততক্ষণে ইউজার আরও টাইপ করে ফেলেছে, এই ফলাফল বাতিল
+
+      if (cache.has(value)) {
+        usernameState = { value, valid: false };
+        setUnameIcon("taken");
+        setUnameHint("This username is already taken", "taken");
+      } else {
+        usernameState = { value, valid: true };
+        setUnameIcon("available");
+        setUnameHint("Username is available", "available");
+      }
+    }
+
+    let _unameDebounce = null;
+    usernameInput.addEventListener("input", () => {
+      clearError();
+      clearTimeout(_unameDebounce);
+      const raw = usernameInput.value;
+      _unameDebounce = setTimeout(() => checkUsername(raw), 400);
+    });
+
+    // ── Error helpers ────────────────────────────────────────
+    function showError(msg) {
+      errorMsg.textContent   = msg;
+      errorMsg.style.display = "block";
+    }
+    function clearError() {
+      errorMsg.textContent   = "";
+      errorMsg.style.display = "none";
+    }
+
+    function friendlyError(code) {
+      const map = {
+        "auth/email-already-in-use":   "An account already exists with this email.",
+        "auth/invalid-email":          "Please enter a valid email address.",
+        "auth/weak-password":          "Password must be at least 6 characters.",
+        "auth/too-many-requests":      "Too many attempts. Please try again later.",
+        "auth/network-request-failed": "Network error. Check your connection.",
+        "auth/operation-not-allowed":  "Signup is currently disabled."
+      };
+      return map[code] || "Signup failed. Please try again.";
+    }
+
+    // ── Signup handler ───────────────────────────────────────
+    async function handleSignup() {
+      clearError();
+
+      const name     = nameInput.value.trim();
+      const username = usernameInput.value.trim().toLowerCase();
+      const email    = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!name)     { showError("Please enter your full name.");        return; }
+      if (!username) { showError("Please choose a username.");           return; }
+      if (!USERNAME_RE.test(username)) {
+        showError("Username must be 3–20 characters: letters, numbers & underscore only.");
+        return;
+      }
+      if (!email)    { showError("Please enter your email.");            return; }
+      if (!password) { showError("Please create a password.");           return; }
+      if (password.length < 6) { showError("Password must be at least 6 characters."); return; }
+
+      signupBtn.classList.add("loading");
+      signupBtn.disabled = true;
+
+      try {
+        // ── ফাইনাল uniqueness re-check (submit মুহূর্তে fresh ডেটা দিয়ে) ──
+        // এটা দরকার কারণ cache স্টেল হতে পারে, বা দুইজন একই সময়ে একই username টাইপ করে ফেলতে পারে।
+        const usersSnap = await get(ref(db, "users"));
+        let taken = false;
+        if (usersSnap.exists()) {
+          usersSnap.forEach((child) => {
+            if (String(child.val()?.username || "").toLowerCase() === username) taken = true;
+          });
+        }
+        if (taken) {
+          setUnameIcon("taken");
+          setUnameHint("This username is already taken", "taken");
+          showError("This username was just taken — please choose another.");
+          signupBtn.classList.remove("loading");
+          signupBtn.disabled = false;
+          return;
+        }
+
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+
+        /* users/{uid} প্রোফাইল রেকর্ড — index.html / profile.html এর field-নাম মিলিয়ে */
+        await set(ref(db, `users/${cred.user.uid}`), {
+          name,
+          username,
+          profilePhotoUrl: null,
+          postsCount:      0,
+          friendsCount:    0,
+          followersCount:  0
+        });
+
+        window.location.href = "/";
+      } catch (err) {
+        showError(friendlyError(err.code));
+        signupBtn.classList.remove("loading");
+        signupBtn.disabled = false;
+      }
+    }
+
+    signupBtn.addEventListener("click", handleSignup);
+
+    [nameInput, emailInput, passwordInput].forEach((el) => {
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") handleSignup(); });
+      el.addEventListener("input",   clearError);
+    });
+    usernameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") handleSignup(); });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Post</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #ffffff; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+    .toast { position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 22px; font-size: 12px; font-weight: 500; z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+    .toast.show { opacity: 1; }
+    /* === CREATE POST PANEL === */
+    .cp-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 850; overflow-y: auto; overscroll-behavior: contain; }
+    .cp-overlay.active { display: flex; }
+    .cp-overlay > * { flex-shrink: 0; }
+    .cp-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; position: sticky; top: 0; background: #fff; z-index: 10; }
+    .cp-close-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; border-radius: 50%; }
+    .cp-close-btn:hover { background: #f3f4f6; }
+    .cp-header-title { font-size: 16px; font-weight: 600; color: #111827; }
+    .cp-submit-btn { background: #6C63FF; color: #fff; border: none; border-radius: 10px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+    .cp-submit-btn:hover { background: #5b53e0; }
+    .cp-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .cp-divider { height: 1px; background: #e5e7eb; flex-shrink: 0; }
+    .cp-user-row { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px 8px; }
+    .cp-avatar { width: 50px; height: 50px; border-radius: 50%; background: #e0f2fe; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+    .cp-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .cp-name-vis-col { display: flex; flex-direction: column; gap: 5px; margin-top: 9px; }
+    .cp-name { font-size: 13px; font-weight: 500; color: #111827; }
+    .cp-name-arrow { font-size: 13px; color: #6b7280; line-height: 1; }
+    .cp-vis-wrap { position: relative; }
+    .cp-vis-btn { display: flex; align-items: center; gap: 5px; background: #fff; border: 1px solid #e5e7eb; border-radius: 20px; padding: 4px 10px 4px 8px; cursor: pointer; font-size: 10px; font-weight: 600; color: #374151; }
+    .cp-vis-arrow { font-size: 7px; color: #6b7280; margin-left: 2px; }
+    .cp-vis-dropdown { display: none; position: absolute; top: calc(100% + 4px); left: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); padding: 6px; z-index: 1200; min-width: 160px; }
+    .cp-vis-dropdown.open { display: block; }
+    .cp-vis-opt { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #374151; }
+    .cp-vis-opt:hover { background: #f3f4f6; }
+    .cp-vis-opt.selected { background: #ede9fe; color: #6C63FF; font-weight: 600; }
+    .cp-textarea { width: 100%; border: none; outline: none; resize: none; font-size: 17px; color: #111827; padding: 6px 16px; min-height: 180px; font-family: inherit; line-height: 1.6; }
+    .cp-textarea::placeholder { color: #9ca3af; }
+    .cp-spacer { height: 8px; }
+    .cp-media-row { display: flex; align-items: center; gap: 8px; padding: 14px 16px; }
+    .cp-media-btn { background: none; border: 1px solid rgba(229,231,235,0.7); border-radius: 12px; cursor: pointer; width: 46px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0.72; }
+    .cp-more-btn { margin-left: auto; }
+    .cp-media-preview { display: none; flex-direction: row; flex-wrap: wrap; gap: 6px; padding: 0 16px 10px; max-height: 216px; overflow-y: auto; }
+    .cp-media-preview.active { display: flex; }
+    .cp-preview-item { position: relative; width: 78px; height: 100px; border-radius: 10px; overflow: hidden; background: #f3f4f6; flex-shrink: 0; }
+    .cp-preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cp-preview-del { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; background: rgba(0,0,0,0.6); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    .cp-feature-list { margin: 8px 16px 22px; border: 1px solid #e5e7eb; border-radius: 14px; overflow: hidden; }
+    .cp-feature-item { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border: none; padding: 11px 14px; cursor: pointer; font-size: 13.5px; font-weight: 600; color: #374151; font-family: 'Segoe UI', sans-serif; transition: background 0.15s; text-align: left; }
+    .cp-feature-item:hover { background: #f9fafb; }
+    .cp-feature-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    /* Toggle switch */
+    .cp-toggle-wrap { margin-left: auto; flex-shrink: 0; }
+    .cp-toggle { width: 44px; height: 26px; border-radius: 99px; background: #e5e7eb; border: none; cursor: pointer; display: flex; align-items: center; padding: 3px; transition: background 0.22s; }
+    .cp-toggle.on { background: #6C63FF; }
+    .cp-toggle-dot { width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.22); transition: transform 0.22s; flex-shrink: 0; }
+    .cp-toggle.on .cp-toggle-dot { transform: translateX(18px); }
+    /* Schedule picker */
+    .cp-schedule-picker { display: none; padding: 10px 14px 12px; background: #f9fafb; }
+    .cp-schedule-picker.visible { display: block; }
+    .cp-schedule-input { width: 100%; padding: 10px 12px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 13px; color: #374151; outline: none; font-family: 'Segoe UI', sans-serif; transition: border-color 0.2s; }
+    .cp-schedule-input:focus { border-color: #6C63FF; }
+    .cp-schedule-hint { font-size: 11px; color: #9ca3af; margin-top: 6px; }
+    /* ── Drag reorder bar ── */
+    .cp-reorder-bar { display: flex; align-items: center; padding: 6px 16px 4px; }
+    .cp-drag-handle { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; margin-right: 8px; cursor: grab; }
+    .cp-drag-dots-row { display: flex; gap: 2.5px; }
+    .cp-drag-dot { width: 3px; height: 3px; border-radius: 50%; background: #c4c8d0; display: block; }
+    .cp-reorder-label { font-size: 12px; color: #9ca3af; font-weight: 500; }
+    .cp-media-count { margin-left: auto; font-size: 12px; font-weight: 600; color: #9ca3af; transition: color 0.2s; }
+    .cp-media-count.has-media { color: #6C63FF; }
+    /* ── Add Media bottom sheet ── */
+    .media-sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1100; display: none; }
+    .media-sheet-bg.open { display: block; }
+    .media-sheet { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 20px 20px 0 0; z-index: 1101; padding: 10px 0 32px; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); }
+    .media-sheet-bg.open .media-sheet { transform: translateY(0); }
+    .media-sheet-pill { width: 36px; height: 4px; border-radius: 99px; background: #e5e7eb; margin: 0 auto 18px; }
+    .media-sheet-title { font-size: 14px; font-weight: 700; color: #111827; text-align: center; margin-bottom: 16px; }
+    .media-sheet-options { display: flex; justify-content: space-around; padding: 0 16px; gap: 10px; }
+    .media-sheet-opt { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 1; background: #f9fafb; border: 1.5px solid #e5e7eb; border-radius: 16px; padding: 18px 10px 14px; cursor: pointer; transition: background 0.15s, border-color 0.15s; -webkit-tap-highlight-color: transparent; }
+    .media-sheet-opt:active { background: #ede9fe; border-color: #6C63FF; }
+    .media-sheet-opt-icon { width: 44px; height: 44px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .media-sheet-opt-label { font-size: 12px; font-weight: 600; color: #374151; }
+    /* ── Name dropdown (Post as Anonymous) ── */
+    .cp-name-row { display: flex; align-items: center; gap: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .cp-name-wrap { position: relative; }
+    .cp-name-dropdown { display: none; position: absolute; top: calc(100% + 5px); left: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.12); padding: 6px; z-index: 1300; min-width: 210px; }
+    .cp-name-dropdown.open { display: block; }
+    .cp-name-opt { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: #374151; gap: 10px; }
+    .cp-name-opt:hover { background: #f9fafb; }
+    /* ── Location overlay ── */
+    .loc-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #fff; display: none; flex-direction: column; z-index: 900; }
+    .loc-overlay.active { display: flex; }
+    .loc-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; min-height: 52px; flex-shrink: 0; }
+    .loc-close-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; border-radius: 50%; }
+    .loc-close-btn:hover { background: #f3f4f6; }
+    .loc-header-title { font-size: 16px; font-weight: 600; color: #111827; }
+    .loc-done-btn { color: #6C63FF; font-size: 14px; font-weight: 600; background: none; border: none; cursor: pointer; padding: 6px 2px; }
+    .loc-done-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .loc-divider { height: 1px; background: #e5e7eb; flex-shrink: 0; }
+    .loc-search-wrap { padding: 14px 16px 10px; flex-shrink: 0; }
+    .loc-search-box { display: flex; align-items: center; gap: 10px; background: #f3f4f6; border-radius: 24px; padding: 10px 16px; }
+    .loc-search-icon { color: #9ca3af; flex-shrink: 0; display: flex; }
+    .loc-search-input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; color: #111827; font-family: 'Segoe UI', sans-serif; }
+    .loc-search-input::placeholder { color: #9ca3af; }
+    .loc-search-clear { background: none; border: none; cursor: pointer; color: #9ca3af; padding: 0; display: flex; align-items: center; }
+    .loc-results { flex: 1; overflow-y: auto; }
+    .loc-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; }
+    .loc-empty-text { font-size: 13px; color: #9ca3af; text-align: center; }
+    .loc-loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 10px; }
+    .loc-spinner { width: 18px; height: 18px; border: 2px solid #e5e7eb; border-top-color: #6C63FF; border-radius: 50%; animation: locSpin 0.7s linear infinite; }
+    @keyframes locSpin { to { transform: rotate(360deg); } }
+    .loc-result-item { display: flex; align-items: center; padding: 13px 16px; gap: 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.12s; -webkit-tap-highlight-color: transparent; }
+    .loc-result-item:active { background: #f9fafb; }
+    .loc-result-item:last-child { border-bottom: none; }
+    .loc-result-pin { color: #9ca3af; flex-shrink: 0; display: flex; }
+    .loc-result-info { flex: 1; min-width: 0; }
+    .loc-result-name { font-size: 14px; font-weight: 600; color: #111827; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .loc-result-detail { font-size: 12px; color: #6b7280; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .loc-radio { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d1d5db; background: #fff; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .loc-radio.selected { border-color: #6C63FF; background: #6C63FF; }
+    .loc-radio.selected::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; display: block; }
+    /* ── Tag People panel ── */
+    .tag-result-item { display: flex; align-items: center; padding: 10px 16px; gap: 12px; border-bottom: 1px solid #f3f4f6; cursor: pointer; transition: background 0.12s; -webkit-tap-highlight-color: transparent; }
+    .tag-result-item:active { background: #f9fafb; }
+    .tag-result-item:last-child { border-bottom: none; }
+    .tag-av { width: 42px; height: 42px; border-radius: 50%; background: #e0f2fe; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 16px; font-weight: 700; color: #374151; }
+    .tag-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .tag-info { flex: 1; min-width: 0; }
+    .tag-name { font-size: 14px; font-weight: 600; color: #111827; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tag-username { font-size: 12px; color: #6b7280; display: block; margin-top: 1px; }
+    .tag-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d1d5db; background: #fff; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .tag-check.selected { border-color: #6C63FF; background: #6C63FF; }
+    .tag-check.selected::after { content: ''; width: 10px; height: 6px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; display: block; transform: rotate(-45deg) translate(1px, -1px); }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"></div>
+  <!-- ===== CREATE POST PANEL ===== -->
+  <div class="cp-overlay active" id="cpOverlay">
+    <!-- Header -->
+    <div class="cp-header">
+      <button class="cp-close-btn" onclick="closeCreatePost()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <span class="cp-header-title">Create Post</span>
+      <button class="cp-submit-btn" id="cpSubmitBtn" onclick="submitCreatePost()">Post</button>
+    </div>
+    <div class="cp-divider"></div>
+
+    <!-- User row -->
+    <div class="cp-user-row">
+      <div class="cp-avatar" id="cpAvatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </div>
+      <div class="cp-name-vis-col">
+        <div class="cp-name-wrap">
+          <div class="cp-name-row" onclick="toggleNameDropdown()">
+            <span class="cp-name" id="cpName">Loading…</span>
+            <span class="cp-name-arrow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="cp-name-dropdown" id="cpNameDropdown">
+            <div class="cp-name-opt">
+              <span>Post as Anonymous</span>
+              <button class="cp-toggle" id="anonToggle" onclick="toggleAnonymous()" aria-label="Toggle anonymous">
+                <div class="cp-toggle-dot"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="cp-vis-wrap">
+          <button class="cp-vis-btn" onclick="toggleCpVisDropdown()">
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span id="cpVisLabel">Public</span>
+            <span class="cp-vis-arrow">⌵</span>
+          </button>
+          <div class="cp-vis-dropdown" id="cpVisDropdown">
+            <div class="cp-vis-opt selected" onclick="setCpVis('Public', this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Public
+            </div>
+            <div class="cp-vis-opt" onclick="setCpVis('Friends', this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Friends
+            </div>
+            <div class="cp-vis-opt" onclick="setCpVis('Only me', this)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Only me
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Textarea -->
+    <textarea class="cp-textarea" id="cpText" placeholder="What's on your mind?"></textarea>
+
+    <div class="cp-spacer"></div>
+
+    <!-- Media icons row -->
+    <div class="cp-media-row">
+      <button class="cp-media-btn" title="Image" onclick="document.getElementById('cpImageInput').click()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="2" stroke="#4CAF50" stroke-width="1.8"/><circle cx="9" cy="9" r="1.5" fill="#4CAF50"/><path d="M5 17L10 12L13 15L17 10L19 12V17H5Z" stroke="#4CAF50" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="cp-media-btn" title="Video">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="6" width="12" height="12" rx="2" stroke="#E91E63" stroke-width="1.8"/><path d="M9 10L13 12L9 14V10Z" fill="#E91E63"/><path d="M15 9L20 7V17L15 15V9Z" stroke="#E91E63" stroke-width="1.8" fill="none"/></svg>
+      </button>
+      <button class="cp-media-btn" title="Audio" onclick="document.getElementById('cpAudioInput').click()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="18" r="2" stroke="#7C4DFF" stroke-width="1.8"/><circle cx="17" cy="16" r="2" stroke="#7C4DFF" stroke-width="1.8"/><path d="M9 18V6L19 5V16" stroke="#7C4DFF" stroke-width="1.8" fill="none"/></svg>
+      </button>
+      <button class="cp-media-btn" title="Wave">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="9" width="2.5" height="6" rx="1" fill="#F5A623"/><rect x="9" y="5" width="2.5" height="14" rx="1" fill="#F5A623"/><rect x="14" y="3" width="2.5" height="18" rx="1" fill="#F5A623"/><rect x="19" y="8" width="2.5" height="8" rx="1" fill="#F5A623"/></svg>
+      </button>
+      <button class="cp-media-btn" title="Emoji">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="#4285F4" stroke-width="1.8"/><circle cx="9" cy="10" r="1" fill="#4285F4"/><circle cx="15" cy="10" r="1" fill="#4285F4"/><path d="M8 14C9 16 15 16 16 14" stroke="#4285F4" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button class="cp-media-btn cp-more-btn" title="More">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="12" r="1.8" fill="#6b7280"/><circle cx="12" cy="12" r="1.8" fill="#6b7280"/><circle cx="19" cy="12" r="1.8" fill="#6b7280"/></svg>
+      </button>
+    </div>
+
+    <!-- Hidden file inputs -->
+    <input type="file" id="cpImageInput" accept="image/*" multiple style="display:none;" onchange="onCpImageSelect(event)">
+    <input type="file" id="cpVideoInput" accept="video/*" multiple style="display:none;" onchange="onCpVideoSelect(event)">
+    <input type="file" id="cpAudioInput" accept="audio/*" multiple style="display:none;" onchange="onCpAudioSelect(event)">
+
+    <!-- Selected media preview -->
+    <div class="cp-media-preview" id="cpMediaPreview"></div>
+
+    <!-- Drag to reorder bar + media counter -->
+    <div class="cp-reorder-bar">
+      <div class="cp-drag-handle">
+        <div class="cp-drag-dots-row">
+          <div class="cp-drag-dot"></div>
+          <div class="cp-drag-dot"></div>
+        </div>
+        <div class="cp-drag-dots-row">
+          <div class="cp-drag-dot"></div>
+          <div class="cp-drag-dot"></div>
+        </div>
+        <div class="cp-drag-dots-row">
+          <div class="cp-drag-dot"></div>
+          <div class="cp-drag-dot"></div>
+        </div>
+      </div>
+      <span class="cp-reorder-label">Drag to reorder</span>
+      <span class="cp-media-count" id="cpMediaCount">0/5</span>
+    </div>
+
+    <!-- Post feature options (single rounded box) -->
+    <div class="cp-feature-list">
+      <button class="cp-feature-item" onclick="openMediaSheet()">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </span>
+        <span>Add Media</span>
+      </button>
+      <button class="cp-feature-item" onclick="openLocationPanel()">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </span>
+        <span id="cpLocationLabel">Add Location</span>
+      </button>
+      <button class="cp-feature-item" onclick="openTagPanel()">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span id="cpTagLabel">Tag People</span>
+      </button>
+      <button class="cp-feature-item" onclick="cpFeatureClick('hashtag')">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </span>
+        <span>Add Hashtag</span>
+      </button>
+      <!-- Schedule Post (with toggle) -->
+      <div class="cp-feature-item">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </span>
+        <span>Schedule Post</span>
+        <div class="cp-toggle-wrap">
+          <button class="cp-toggle" id="scheduleToggle" onclick="toggleSchedule()" aria-label="Toggle schedule">
+            <div class="cp-toggle-dot"></div>
+          </button>
+        </div>
+      </div>
+      <!-- Schedule date/time picker (hidden until toggle ON) -->
+      <div class="cp-schedule-picker" id="schedulePicker">
+        <input type="datetime-local" class="cp-schedule-input" id="scheduleInput" step="1">
+        <p class="cp-schedule-hint">এই সময়ে পোস্ট স্বয়ংক্রিয়ভাবে প্রকাশ হবে</p>
+      </div>
+      <!-- Allow Comment (with toggle — ON = allowed, OFF = disabled) -->
+      <div class="cp-feature-item">
+        <span class="cp-feature-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </span>
+        <span>Allow Comment</span>
+        <div class="cp-toggle-wrap">
+          <button class="cp-toggle on" id="commentToggle" onclick="toggleComments()" aria-label="Toggle comments">
+            <div class="cp-toggle-dot"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADD MEDIA BOTTOM SHEET ===== -->
+  <div class="media-sheet-bg" id="mediaSheetBg" onclick="closeMediaSheet(event)">
+    <div class="media-sheet">
+      <div class="media-sheet-pill"></div>
+      <div class="media-sheet-title">Add Media</div>
+      <div class="media-sheet-options">
+        <div class="media-sheet-opt" onclick="pickMediaType('photo')">
+          <div class="media-sheet-opt-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <span class="media-sheet-opt-label">Photo</span>
+        </div>
+        <div class="media-sheet-opt" onclick="pickMediaType('video')">
+          <div class="media-sheet-opt-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          </div>
+          <span class="media-sheet-opt-label">Video</span>
+        </div>
+        <div class="media-sheet-opt" onclick="pickMediaType('audio')">
+          <div class="media-sheet-opt-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <span class="media-sheet-opt-label">Audio</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAG PEOPLE PANEL ===== -->
+  <div class="loc-overlay" id="tagOverlay">
+    <div class="loc-header">
+      <button class="loc-close-btn" onclick="closeTagPanel()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <span class="loc-header-title">Tag People</span>
+      <button class="loc-done-btn" id="tagDoneBtn" onclick="confirmTag()">Done</button>
+    </div>
+    <div class="loc-divider"></div>
+    <div class="loc-search-wrap">
+      <div class="loc-search-box">
+        <span class="loc-search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" class="loc-search-input" id="tagSearchInput" placeholder="Search friends…" autocomplete="off" oninput="filterFriends()">
+        <button class="loc-search-clear" id="tagSearchClear" onclick="clearTagSearch()" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="loc-results" id="tagResults">
+      <div class="loc-loading">
+        <div class="loc-spinner"></div>
+        <span style="font-size:13px;color:#9ca3af;">বন্ধুদের লোড হচ্ছে…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOCATION PANEL ===== -->
+  <div class="loc-overlay" id="locOverlay">
+    <div class="loc-header">
+      <button class="loc-close-btn" onclick="closeLocationPanel()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <span class="loc-header-title">Add Location</span>
+      <button class="loc-done-btn" id="locDoneBtn" onclick="confirmLocation()">Done</button>
+    </div>
+    <div class="loc-divider"></div>
+    <!-- Search box -->
+    <div class="loc-search-wrap">
+      <div class="loc-search-box">
+        <span class="loc-search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" class="loc-search-input" id="locSearchInput" placeholder="Search Location" autocomplete="off" oninput="onLocSearch()">
+        <button class="loc-search-clear" id="locSearchClear" onclick="clearLocSearch()" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <!-- Results -->
+    <div class="loc-results" id="locResults">
+      <div class="loc-empty">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <p class="loc-empty-text">কোনো জায়গার নাম টাইপ করুন</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    /* ── FIREBASE + CLOUDINARY (config.js থেকে) ── */
+    import { auth, db, uploadToCloudinary } from "./config.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import { ref, onValue, push, set, get, update } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+    let me = null;
+    let myProfile = null;
+
+    /* profile.html যেভাবে users/{uid} পড়ে, ঠিক সেই একই field-নাম অনুসরণ করা হলো */
+    function applyProfileSnapshot(uid, d) {
+      const photoUrl = d.profilePhotoUrl || d.photoURL || me?.photoURL || '';
+      const name     = d.name || d.displayName || d.fullName || d.userName || me?.displayName || 'You';
+      const username = d.username || d.userName || null;
+      myProfile = {
+        id:         uid,
+        full_name:  name,
+        username:   username,
+        avatar_url: photoUrl || null
+      };
+      updateCpUser();
+    }
+
+    function avatarHtmlFor(profile, size = 34) {
+      const name = profile?.full_name || profile?.username || '?';
+      const url  = profile?.avatar_url;
+      if (url) return `<img src="${url}" alt="${esc(name)}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:50%;">`;
+      return `<span style="font-size:${Math.round(size*0.42)}px;font-weight:700;color:#374151;">${name.charAt(0).toUpperCase()}</span>`;
+    }
+
+    /* ── AUTH SYNC: লগইন করা ইউজারের users/{uid} প্রোফাইল লাইভ লোড হবে ── */
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        me = null; myProfile = null;
+        updateCpUser();
+        return;
+      }
+      me = user;
+      onValue(ref(db, `users/${user.uid}`), (snap) => {
+        applyProfileSnapshot(user.uid, snap.val() || {});
+      });
+    });
+
+    function updateCpUser() {
+      if (cpIsAnonymous) return; // don't overwrite anonymous state
+      const av = document.getElementById('cpAvatar');
+      av.innerHTML = avatarHtmlFor(myProfile, 42);
+      av.style.background = myProfile?.avatar_url ? 'transparent' : '#e0f2fe';
+      document.getElementById('cpName').textContent = myProfile?.full_name || myProfile?.username || 'You';
+      document.getElementById('cpName').style.color = '';
+    }
+    function esc(s) { const d=document.createElement('div'); d.appendChild(document.createTextNode(s||'')); return d.innerHTML; }
+    function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000); }
+    /* ── CREATE POST PANEL ── */
+    let cpSelectedVisibility = 'Public';
+    let cpAllowComments = true;
+    let cpScheduleOn = false;
+
+    /* schedule helper */
+    function toLocalDatetimeInput(date) {
+      const p = n => String(n).padStart(2,'0');
+      return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}:${p(date.getSeconds())}`;
+    }
+
+    function toggleSchedule() {
+      const toggle = document.getElementById('scheduleToggle');
+      const picker = document.getElementById('schedulePicker');
+      toggle.classList.toggle('on');
+      cpScheduleOn = toggle.classList.contains('on');
+      picker.classList.toggle('visible', cpScheduleOn);
+      if (cpScheduleOn) {
+        /* default: 1 hour from now */
+        const future = new Date(Date.now() + 3600000);
+        document.getElementById('scheduleInput').value = toLocalDatetimeInput(future);
+      } else {
+        document.getElementById('scheduleInput').value = '';
+      }
+    }
+
+    function toggleComments() {
+      const toggle = document.getElementById('commentToggle');
+      toggle.classList.toggle('on');
+      cpAllowComments = toggle.classList.contains('on');
+    }
+    function openCreatePost() {
+      document.getElementById('cpText').value = '';
+      document.getElementById('cpSubmitBtn').disabled = false;
+      document.getElementById('cpSubmitBtn').textContent = 'Post';
+      /* reset selected media */
+      cpMediaFiles.forEach(m => URL.revokeObjectURL(m.url));
+      cpMediaFiles = [];
+      renderCpMediaPreview();
+      /* set avatar & name */
+      const av = document.getElementById('cpAvatar');
+      av.innerHTML = avatarHtmlFor(myProfile, 42);
+      av.style.background = myProfile?.avatar_url ? 'transparent' : '#e0f2fe';
+      document.getElementById('cpName').textContent = myProfile?.full_name || myProfile?.username || 'You';
+      /* reset visibility */
+      cpSelectedVisibility = 'Public';
+      document.getElementById('cpVisLabel').textContent = 'Public';
+      document.querySelectorAll('.cp-vis-opt').forEach(o => o.classList.remove('selected'));
+      document.querySelector('.cp-vis-opt').classList.add('selected');
+      document.getElementById('cpOverlay').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      /* reset anonymous */
+      cpIsAnonymous = false;
+      const anonBtn = document.getElementById('anonToggle');
+      if (anonBtn) anonBtn.classList.remove('on');
+      /* reset location */
+      cpSelectedLocation = null;
+      const locLbl = document.getElementById('cpLocationLabel');
+      if (locLbl) { locLbl.textContent = 'Add Location'; locLbl.style.color = ''; }
+      /* reset tagged people */
+      cpTaggedPeople = [];
+      tagFilteredList = [];
+      const tagLbl = document.getElementById('cpTagLabel');
+      if (tagLbl) { tagLbl.textContent = 'Tag People'; tagLbl.style.color = ''; }
+      /* reset schedule & comment toggles */
+      cpAllowComments = true;
+      cpScheduleOn = false;
+      document.getElementById('commentToggle').classList.add('on');
+      document.getElementById('scheduleToggle').classList.remove('on');
+      document.getElementById('schedulePicker').classList.remove('visible');
+      document.getElementById('scheduleInput').value = '';
+      setTimeout(() => document.getElementById('cpText').focus(), 200);
+    }
+    /* ── CLOSE CREATE POST ── */
+    function closeCreatePost() {
+      document.getElementById('cpOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+      document.getElementById('cpVisDropdown').classList.remove('open');
+      document.getElementById('cpNameDropdown').classList.remove('open');
+      document.getElementById('schedulePicker').classList.remove('visible');
+      document.getElementById('scheduleToggle').classList.remove('on');
+      document.getElementById('commentToggle').classList.add('on');
+      cpAllowComments = true;
+      cpScheduleOn = false;
+    }
+
+    function toggleCpVisDropdown() {
+      document.getElementById('cpVisDropdown').classList.toggle('open');
+    }
+
+    function toggleNameDropdown() {
+      document.getElementById('cpNameDropdown').classList.toggle('open');
+      // Close vis dropdown if open
+      document.getElementById('cpVisDropdown').classList.remove('open');
+    }
+
+    function toggleAnonymous() {
+      cpIsAnonymous = !cpIsAnonymous;
+      document.getElementById('anonToggle').classList.toggle('on', cpIsAnonymous);
+      if (cpIsAnonymous) {
+        // Show anonymous avatar
+        const av = document.getElementById('cpAvatar');
+        av.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="17" y1="4" x2="20" y2="7"/><line x1="20" y1="4" x2="17" y2="7"/></svg>`;
+        av.style.background = '#f3f4f6';
+        document.getElementById('cpName').textContent = 'Anonymous';
+        document.getElementById('cpName').style.color = '#6b7280';
+      } else {
+        // Restore real user
+        const av = document.getElementById('cpAvatar');
+        av.innerHTML = avatarHtmlFor(myProfile, 42);
+        av.style.background = myProfile?.avatar_url ? 'transparent' : '#e0f2fe';
+        document.getElementById('cpName').textContent = myProfile?.full_name || myProfile?.username || 'You';
+        document.getElementById('cpName').style.color = '';
+      }
+      document.getElementById('cpNameDropdown').classList.remove('open');
+    }
+
+    function setCpVis(val, el) {
+      cpSelectedVisibility = val;
+      document.getElementById('cpVisLabel').textContent = val;
+      document.querySelectorAll('.cp-vis-opt').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('cpVisDropdown').classList.remove('open');
+    }
+    /* ── ADD MEDIA BOTTOM SHEET ── */
+    function openMediaSheet() {
+      document.getElementById('mediaSheetBg').classList.add('open');
+    }
+    function closeMediaSheet(e) {
+      // close only if clicking backdrop (not the sheet itself)
+      if (e && e.target !== document.getElementById('mediaSheetBg')) return;
+      document.getElementById('mediaSheetBg').classList.remove('open');
+    }
+    function pickMediaType(type) {
+      document.getElementById('mediaSheetBg').classList.remove('open');
+      if (type === 'photo') document.getElementById('cpImageInput').click();
+      else if (type === 'video') document.getElementById('cpVideoInput').click();
+      else if (type === 'audio') document.getElementById('cpAudioInput').click();
+    }
+
+    function onCpVideoSelect(e) {
+      const files = Array.from(e.target.files || []);
+      const remaining = 5 - cpMediaFiles.length;
+      if (remaining <= 0) { toast('সর্বোচ্চ ৫টি মিডিয়া যোগ করা যাবে'); e.target.value = ''; return; }
+      files.slice(0, remaining).forEach(file => { cpMediaFiles.push({ file, url: URL.createObjectURL(file), type: 'video' }); });
+      if (files.length > remaining) toast(`${remaining}টি যোগ হয়েছে — সর্বোচ্চ ৫টি মিডিয়া`);
+      e.target.value = '';
+      renderCpMediaPreview();
+    }
+
+    /* ── CREATE POST: MEDIA PICKER ── */
+    let cpMediaFiles = []; // { file, url, type }
+    let cpSelectedLocation = null; // { name, detail, display_name, lat, lon }
+    let cpTaggedPeople   = []; // [{ id, full_name, username, avatar_url }]
+    let tagAllFriends    = []; // cached friends list
+    let tagFilteredList  = []; // after in-memory search
+    let cpIsAnonymous    = false;
+
+    function onCpImageSelect(e) {
+      const files = Array.from(e.target.files || []);
+      const remaining = 5 - cpMediaFiles.length;
+      if (remaining <= 0) { toast('সর্বোচ্চ ৫টি মিডিয়া যোগ করা যাবে'); e.target.value = ''; return; }
+      files.slice(0, remaining).forEach(file => { cpMediaFiles.push({ file, url: URL.createObjectURL(file), type: 'image' }); });
+      if (files.length > remaining) toast(`${remaining}টি যোগ হয়েছে — সর্বোচ্চ ৫টি মিডিয়া`);
+      e.target.value = '';
+      renderCpMediaPreview();
+    }
+
+    function onCpAudioSelect(e) {
+      const files = Array.from(e.target.files || []);
+      const remaining = 5 - cpMediaFiles.length;
+      if (remaining <= 0) { toast('সর্বোচ্চ ৫টি মিডিয়া যোগ করা যাবে'); e.target.value = ''; return; }
+      files.slice(0, remaining).forEach(file => { cpMediaFiles.push({ file, url: URL.createObjectURL(file), type: 'audio' }); });
+      if (files.length > remaining) toast(`${remaining}টি যোগ হয়েছে — সর্বোচ্চ ৫টি মিডিয়া`);
+      e.target.value = '';
+      renderCpMediaPreview();
+    }
+
+    function renderCpMediaPreview() {
+      const wrap = document.getElementById('cpMediaPreview');
+      const countEl = document.getElementById('cpMediaCount');
+      const count = cpMediaFiles.length;
+      if (countEl) { countEl.textContent = `${count}/5`; countEl.classList.toggle('has-media', count > 0); }
+      if (count === 0) { wrap.classList.remove('active'); wrap.innerHTML = ''; return; }
+      wrap.classList.add('active');
+      wrap.innerHTML = cpMediaFiles.map((m, i) => {
+        if (m.type === 'audio') {
+          return `<div class="cp-preview-item" style="width:100%;height:50px;padding:0 12px;display:flex;align-items:center;gap:10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C4DFF" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="18" r="2"/><circle cx="17" cy="16" r="2"/><path d="M9 18V6L19 5V16"/></svg>
+            <span style="flex:1;font-size:12px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(m.file.name)}</span>
+            <button class="cp-preview-del" style="position:static;width:20px;height:20px;" onclick="removeCpMedia(${i})">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>`;
+        }
+        return `<div class="cp-preview-item">
+          ${m.type === 'video' ? `<video src="${m.url}" muted></video>` : `<img src="${m.url}" alt="media">`}
+          <button class="cp-preview-del" onclick="removeCpMedia(${i})">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    function removeCpMedia(index) {
+      URL.revokeObjectURL(cpMediaFiles[index].url);
+      cpMediaFiles.splice(index, 1);
+      renderCpMediaPreview();
+    }
+    function cpFeatureClick(kind) { toast('এই ফিচারটি খুব দ্রুত আসছে ✨'); }
+
+    async function submitCreatePost() {
+      const content = document.getElementById('cpText').value.trim();
+      if (!content && cpMediaFiles.length === 0) { toast('কিছু লিখুন বা ছবি যুক্ত করুন'); return; }
+
+      if (!me) { toast('পোস্ট করতে আগে লগইন করুন'); return; }
+
+      /* Schedule validation */
+      let scheduledAt = null;
+      if (cpScheduleOn) {
+        const inputVal = document.getElementById('scheduleInput').value;
+        if (!inputVal) { toast('Schedule এর তারিখ ও সময় দিন'); return; }
+        const scheduledDate = new Date(inputVal);
+        if (scheduledDate <= new Date()) { toast('Schedule সময় ভবিষ্যতে হতে হবে'); return; }
+        scheduledAt = scheduledDate.toISOString();
+      }
+
+      const btn = document.getElementById('cpSubmitBtn');
+      btn.disabled = true; btn.textContent = scheduledAt ? 'Scheduling…' : 'Posting…';
+
+      try {
+        /* ── ১) মিডিয়া ফাইলগুলো Cloudinary-তে আপলোড ── */
+        const uploadedMedia = [];
+        for (const m of cpMediaFiles) {
+          const { url, resourceType } = await uploadToCloudinary(m.file, 'posts');
+          uploadedMedia.push({
+            mediaUrl:  url,
+            mediaType: resourceType === 'video' ? 'video' : (m.type === 'audio' ? 'audio' : 'image')
+          });
+        }
+
+        /* ── ২) টেক্সট + মেটাডেটা Firebase Realtime DB-তে সেভ (posts/{uid}/{postId}) ── */
+        const visMap = { 'Public': 'public', 'Friends': 'friends', 'Only me': 'only_me' };
+        const postRef = push(ref(db, `posts/${me.uid}`));
+
+        const postData = {
+          caption:        content,
+          // profile.html একটিমাত্র mediaUrl/mediaType রেন্ডার করে — তাই প্রথম মিডিয়াটা টপ-লেভেলেও রাখা হলো
+          mediaUrl:       uploadedMedia[0]?.mediaUrl  || null,
+          mediaType:      uploadedMedia[0]?.mediaType || null,
+          media:          uploadedMedia, // সব মিডিয়া (একাধিক ছবি/ভিডিও থাকলে)
+          visibility:     visMap[cpSelectedVisibility] || 'public',
+          allowComments:  cpAllowComments,
+          isAnonymous:    cpIsAnonymous,
+          location:       cpSelectedLocation?.display_name || null,
+          taggedUsers:    cpTaggedPeople.map(t => t.id),
+          authorId:       me.uid,
+          authorName:     cpIsAnonymous ? 'Anonymous' : (myProfile?.full_name || myProfile?.username || 'User'),
+          authorAvatar:   cpIsAnonymous ? null : (myProfile?.avatar_url || null),
+          likesCount:     0,
+          commentsCount:  0,
+          sharesCount:    0,
+          timestamp:      Date.now(),
+          ...(scheduledAt ? { scheduledAt } : {})
+        };
+
+        await set(postRef, postData);
+
+        /* users/{uid}.postsCount বাড়িয়ে দেওয়া হলো, যাতে প্রোফাইল পেজে সঠিক সংখ্যা দেখায় */
+        try {
+          const countSnap = await get(ref(db, `users/${me.uid}/postsCount`));
+          const cur = countSnap.exists() ? (countSnap.val() || 0) : 0;
+          await update(ref(db, `users/${me.uid}`), { postsCount: cur + 1 });
+        } catch (e) { console.error('postsCount update error:', e); }
+
+        btn.disabled = false; btn.textContent = 'Post';
+        cpMediaFiles.forEach(m => URL.revokeObjectURL(m.url));
+        cpMediaFiles = [];
+        openCreatePost();
+        toast(scheduledAt ? 'পোস্ট Schedule হয়েছে ✓' : 'পোস্ট সফল হয়েছে ✓');
+      } catch (err) {
+        console.error('[CreatePost] Submit error:', err);
+        btn.disabled = false; btn.textContent = 'Post';
+        toast('পোস্ট করা সম্ভব হয়নি, আবার চেষ্টা করুন');
+      }
+    }
+    /* ── TAG PEOPLE PANEL ── */
+    function openTagPanel() {
+      document.getElementById('tagOverlay').classList.add('active');
+      document.getElementById('tagSearchInput').value = '';
+      document.getElementById('tagSearchClear').style.display = 'none';
+      tagFilteredList = [...tagAllFriends];
+      if (tagAllFriends.length > 0) {
+        renderTagFriends();
+      } else {
+        loadFriendsForTag();
+      }
+      setTimeout(() => document.getElementById('tagSearchInput').focus(), 200);
+    }
+
+    function closeTagPanel() {
+      document.getElementById('tagOverlay').classList.remove('active');
+    }
+
+    function confirmTag() {
+      const lbl = document.getElementById('cpTagLabel');
+      if (lbl) {
+        if (cpTaggedPeople.length === 0) {
+          lbl.textContent = 'Tag People'; lbl.style.color = '';
+        } else if (cpTaggedPeople.length === 1) {
+          lbl.textContent = cpTaggedPeople[0].full_name || cpTaggedPeople[0].username || 'Tag People';
+          lbl.style.color = '#6C63FF';
+        } else {
+          const first = cpTaggedPeople[0].full_name || cpTaggedPeople[0].username || '';
+          lbl.textContent = `${first} & আরো ${cpTaggedPeople.length - 1} জন`;
+          lbl.style.color = '#6C63FF';
+        }
+      }
+      closeTagPanel();
+      if (cpTaggedPeople.length > 0) toast(`${cpTaggedPeople.length}জন ট্যাগ হয়েছে ✓`);
+    }
+
+    function clearTagSearch() {
+      document.getElementById('tagSearchInput').value = '';
+      document.getElementById('tagSearchClear').style.display = 'none';
+      tagFilteredList = [...tagAllFriends];
+      renderTagFriends();
+    }
+
+    function filterFriends() {
+      const q = document.getElementById('tagSearchInput').value.trim().toLowerCase();
+      document.getElementById('tagSearchClear').style.display = q ? 'flex' : 'none';
+      tagFilteredList = q
+        ? tagAllFriends.filter(f =>
+            (f.full_name || '').toLowerCase().includes(q) ||
+            (f.username || '').toLowerCase().includes(q))
+        : [...tagAllFriends];
+      renderTagFriends();
+    }
+
+    async function loadFriendsForTag() {
+      // TODO: users/{uid}/friends (বা আপনার প্রজেক্টের friends schema) থেকে লোড করতে হবে
+      document.getElementById('tagResults').innerHTML =
+        `<div class="loc-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.4" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <p class="loc-empty-text">বন্ধুদের ডাটা এখনো কনফিগার করা হয়নি</p>
+        </div>`;
+    }
+
+    function renderTagFriends() {
+      const wrap = document.getElementById('tagResults');
+      if (!tagFilteredList.length) {
+        wrap.innerHTML = `<div class="loc-empty"><p class="loc-empty-text">কোনো বন্ধু পাওয়া যায়নি</p></div>`;
+        return;
+      }
+      wrap.innerHTML = tagFilteredList.map(f => {
+        const sel = cpTaggedPeople.some(t => t.id === f.id);
+        const avHtml = f.avatar_url
+          ? `<img src="${esc(f.avatar_url)}" alt="${esc(f.full_name || '')}">`
+          : (f.full_name || f.username || '?').charAt(0).toUpperCase();
+        return `<div class="tag-result-item" onclick="toggleFriendTag('${f.id}')">
+          <div class="tag-av">${avHtml}</div>
+          <div class="tag-info">
+            <span class="tag-name">${esc(f.full_name || f.username || 'Unknown')}</span>
+            ${f.username ? `<span class="tag-username">@${esc(f.username)}</span>` : ''}
+          </div>
+          <div class="tag-check${sel ? ' selected' : ''}" id="tagCheck-${f.id}"></div>
+        </div>`;
+      }).join('');
+    }
+
+    function toggleFriendTag(id) {
+      const friend = tagAllFriends.find(f => f.id === id);
+      if (!friend) return;
+      const idx = cpTaggedPeople.findIndex(t => t.id === id);
+      if (idx >= 0) cpTaggedPeople.splice(idx, 1);
+      else cpTaggedPeople.push(friend);
+      const chk = document.getElementById(`tagCheck-${id}`);
+      if (chk) chk.classList.toggle('selected', cpTaggedPeople.some(t => t.id === id));
+    }
+
+    /* ── LOCATION PANEL ── */
+    let locSearchTimer = null;
+    let locSearchResults = [];
+    let locSelectedIdx = -1;
+
+    function openLocationPanel() {
+      document.getElementById('locOverlay').classList.add('active');
+      locSearchResults = [];
+      locSelectedIdx = -1;
+      document.getElementById('locDoneBtn').disabled = true;
+      document.getElementById('locSearchInput').value = '';
+      document.getElementById('locSearchClear').style.display = 'none';
+      renderLocEmpty();
+      setTimeout(() => document.getElementById('locSearchInput').focus(), 200);
+    }
+
+    function closeLocationPanel() {
+      document.getElementById('locOverlay').classList.remove('active');
+    }
+
+    function confirmLocation() {
+      if (locSelectedIdx < 0 || !locSearchResults[locSelectedIdx]) return;
+      cpSelectedLocation = locSearchResults[locSelectedIdx];
+      const lbl = document.getElementById('cpLocationLabel');
+      if (lbl) { lbl.textContent = cpSelectedLocation.display_name; lbl.style.color = '#6C63FF'; }
+      closeLocationPanel();
+      toast('Location যোগ হয়েছে ✓');
+    }
+
+    function clearLocSearch() {
+      document.getElementById('locSearchInput').value = '';
+      document.getElementById('locSearchClear').style.display = 'none';
+      clearTimeout(locSearchTimer);
+      locSearchResults = [];
+      locSelectedIdx = -1;
+      document.getElementById('locDoneBtn').disabled = true;
+      renderLocEmpty();
+    }
+
+    function renderLocEmpty() {
+      document.getElementById('locResults').innerHTML = `
+        <div class="loc-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <p class="loc-empty-text">কোনো জায়গার নাম টাইপ করুন</p>
+        </div>`;
+    }
+
+    function onLocSearch() {
+      const q = document.getElementById('locSearchInput').value.trim();
+      document.getElementById('locSearchClear').style.display = q ? 'flex' : 'none';
+      clearTimeout(locSearchTimer);
+      if (!q) {
+        locSearchResults = []; locSelectedIdx = -1;
+        document.getElementById('locDoneBtn').disabled = true;
+        renderLocEmpty(); return;
+      }
+      document.getElementById('locResults').innerHTML = `
+        <div class="loc-loading">
+          <div class="loc-spinner"></div>
+          <span style="font-size:13px;color:#9ca3af;">খুঁজছি…</span>
+        </div>`;
+      locSearchTimer = setTimeout(() => fetchNominatim(q), 500);
+    }
+
+    async function fetchNominatim(q) {
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=8&accept-language=en&addressdetails=0`;
+        const res = await fetch(url, { headers: { 'User-Agent': 'PostApp/1.0' } });
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+        locSearchResults = data.map(p => {
+          const parts = (p.display_name || '').split(',').map(s => s.trim());
+          return {
+            name: parts[0] || p.display_name,
+            detail: parts.slice(1, 4).join(', '),
+            display_name: p.display_name,
+            lat: p.lat, lon: p.lon
+          };
+        });
+        renderLocResults();
+      } catch (err) {
+        console.error('Nominatim error:', err);
+        document.getElementById('locResults').innerHTML = `
+          <div class="loc-empty">
+            <p class="loc-empty-text">খোঁজা সম্ভব হয়নি, আবার চেষ্টা করুন</p>
+          </div>`;
+      }
+    }
+
+    function renderLocResults() {
+      const wrap = document.getElementById('locResults');
+      if (!locSearchResults.length) {
+        wrap.innerHTML = `<div class="loc-empty"><p class="loc-empty-text">কোনো ফলাফল পাওয়া যায়নি</p></div>`;
+        return;
+      }
+      wrap.innerHTML = locSearchResults.map((r, i) => `
+        <div class="loc-result-item" onclick="selectLoc(${i})">
+          <span class="loc-result-pin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </span>
+          <div class="loc-result-info">
+            <span class="loc-result-name">${esc(r.name)}</span>
+            <span class="loc-result-detail">${esc(r.detail)}</span>
+          </div>
+          <div class="loc-radio${locSelectedIdx === i ? ' selected' : ''}"></div>
+        </div>`).join('');
+    }
+
+    function selectLoc(idx) {
+      locSelectedIdx = idx;
+      document.getElementById('locDoneBtn').disabled = false;
+      document.querySelectorAll('#locResults .loc-radio').forEach((r, i) => {
+        r.classList.toggle('selected', i === idx);
+      });
+    }
+
+    /* close dropdowns on outside click */
+    document.addEventListener('click', e => {
+      const visWrap = document.querySelector('.cp-vis-wrap');
+      if (visWrap && !visWrap.contains(e.target)) document.getElementById('cpVisDropdown')?.classList.remove('open');
+      const nameWrap = document.querySelector('.cp-name-wrap');
+      if (nameWrap && !nameWrap.contains(e.target)) document.getElementById('cpNameDropdown')?.classList.remove('open');
+    });
+
+    /* ── এই ফাংশনগুলো HTML-এর inline onclick/onchange/oninput থেকে কল হয়;
+       type="module" স্ক্রিপ্টে এগুলো অটোমেটিক global হয় না, তাই window-এ এক্সপোজ করা হলো ── */
+    Object.assign(window, {
+      closeCreatePost, submitCreatePost,
+      toggleCpVisDropdown, toggleNameDropdown, toggleAnonymous, setCpVis,
+      openMediaSheet, closeMediaSheet, pickMediaType,
+      onCpImageSelect, onCpVideoSelect, onCpAudioSelect, removeCpMedia,
+      cpFeatureClick, toggleSchedule, toggleComments,
+      openTagPanel, closeTagPanel, confirmTag, clearTagSearch, filterFriends, toggleFriendTag,
+      openLocationPanel, closeLocationPanel, confirmLocation, clearLocSearch, onLocSearch, selectLoc
+    });
+
+    /* ── INIT: open the panel by default since it's the only page left in this file ── */
+    openCreatePost();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>পোস্ট</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f7f8fa; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+
+    /* ── TOP BAR ── */
+    .top-bar {
+      background: #fff;
+      padding: 0 16px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .top-bar-back {
+      width: 36px; height: 36px;
+      border-radius: 50%; background: none; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: #111; transition: background 0.15s;
+    }
+    .top-bar-back:hover { background: #f3f4f6; }
+    .top-bar-title {
+      font-size: 16px; font-weight: 700; color: #111;
+    }
+    .top-bar-more {
+      width: 36px; height: 36px;
+      border-radius: 50%; background: none; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: #6b7280; transition: background 0.15s; position: relative;
+    }
+    .top-bar-more:hover { background: #f3f4f6; }
+
+    /* ── MORE DROPDOWN ── */
+    .more-menu {
+      position: absolute; top: 44px; right: 0;
+      background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      min-width: 160px; overflow: hidden; z-index: 200;
+      display: none;
+    }
+    .more-menu.open { display: block; }
+    .more-menu-item {
+      padding: 12px 16px; font-size: 13px; color: #374151;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
+      transition: background 0.15s;
+    }
+    .more-menu-item:hover { background: #f9fafb; }
+    .more-menu-item.danger { color: #ef4444; }
+
+    /* ── SCROLL AREA ── */
+    .scroll-area {
+      padding-bottom: 80px;
+    }
+
+    /* ── POST CARD ── */
+    .post-card {
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    /* ── POST HEADER ── */
+    .post-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px 12px;
+    }
+    .post-av {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #e0f2fe; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #374151; cursor: pointer;
+    }
+    .post-av img { width: 100%; height: 100%; object-fit: cover; }
+    .post-user-info { flex: 1; min-width: 0; cursor: pointer; }
+    .post-username { font-size: 14px; font-weight: 700; color: #111; }
+    .post-time { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+
+    /* ── CAPTION ── */
+    .post-caption {
+      padding: 0 16px 14px;
+      font-size: 14px; color: #1f2937; line-height: 1.7;
+      white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* ── MEDIA ── */
+    .post-media { }
+    .post-media img {
+      width: 100%; display: block;
+      max-height: 520px; object-fit: contain; background: #f9fafb;
+    }
+    .post-media video {
+      width: 100%; display: block; max-height: 480px; object-fit: contain;
+    }
+    .media-gallery { display: grid; gap: 2px; }
+    .media-gallery.g2 { grid-template-columns: 1fr 1fr; }
+    .media-gallery.g3 { grid-template-columns: 1fr 1fr; }
+    .media-gallery.g3 .g-item:first-child { grid-column: 1/-1; }
+    .media-gallery.g4 { grid-template-columns: 1fr 1fr; }
+    .g-item { overflow: hidden; background: #000; }
+    .g-item img { width: 100%; height: 200px; object-fit: cover; display: block; }
+
+    /* ── ACTION ROW ── */
+    .action-row {
+      display: flex; align-items: center;
+      padding: 10px 12px 8px;
+      border-top: 1px solid #f3f4f6;
+      gap: 4px;
+    }
+    .action-left {
+      display: flex; flex: 1; gap: 2px;
+    }
+    .act-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      font-size: 13px; color: #6b7280; padding: 7px 10px;
+      border-radius: 8px; transition: background 0.15s, color 0.15s;
+      font-family: 'Segoe UI', sans-serif; font-weight: 500;
+    }
+    .act-btn:hover { background: #f3f4f6; }
+    .act-btn.liked { color: #ef4444; }
+    .act-btn.liked:hover { background: #fef2f2; }
+    .act-btn.saved { color: #6C63FF; }
+    .save-btn {
+      display: flex; align-items: center; gap: 5px;
+      background: none; border: none; cursor: pointer;
+      font-size: 13px; color: #6b7280; padding: 7px 10px;
+      border-radius: 8px; transition: background 0.15s, color 0.15s;
+      font-family: 'Segoe UI', sans-serif; font-weight: 500; flex-shrink: 0;
+    }
+    .save-btn:hover { background: #f3f4f6; }
+    .save-btn.saved { color: #6C63FF; }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: #f0f0f0; margin: 0; }
+
+    /* ── TAB BAR ── */
+    .tab-bar {
+      background: #fff;
+      display: flex; align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .tab-item {
+      flex: 1; padding: 12px 0; border: none; background: none;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      color: #9ca3af; font-family: 'Segoe UI', sans-serif;
+      position: relative; transition: color 0.2s;
+    }
+    .tab-item.active { color: #2563eb; }
+    .tab-item.active::after {
+      content: '';
+      position: absolute; bottom: 0; left: 15%; right: 15%;
+      height: 2.5px; background: #2563eb; border-radius: 2px 2px 0 0;
+    }
+
+    /* ── TAB CONTENT ── */
+    .tab-content {
+      background: #fff;
+      min-height: 200px;
+    }
+
+    /* ── REACT LIST ── */
+    .react-list, .share-list {
+      padding: 8px 0;
+    }
+    .react-item, .share-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f7f8fa;
+    }
+    .react-item:last-child, .share-item:last-child { border-bottom: none; }
+    .ri-av {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #e0f2fe; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #374151;
+    }
+    .ri-av img { width: 100%; height: 100%; object-fit: cover; }
+    .ri-name { font-size: 13px; font-weight: 600; color: #111; }
+    .ri-sub { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+    .react-emoji { font-size: 18px; margin-left: auto; }
+
+    /* ── COMMENT SECTION ── */
+    .comment-section { }
+
+    /* Comment Input - Fixed at bottom of tab */
+    .comment-input-wrap {
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 12px 14px;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+      position: sticky; bottom: 54px; z-index: 50;
+    }
+    .c-inp-av {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #e0f2fe; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #374151;
+    }
+    .c-inp-av img { width: 100%; height: 100%; object-fit: cover; }
+    .c-textarea-wrap { flex: 1; }
+    .c-textarea {
+      width: 100%; background: #f7f8fa;
+      border: 1.5px solid #e5e7eb; border-radius: 20px;
+      padding: 9px 14px; font-size: 13px; color: #111;
+      font-family: 'Segoe UI', sans-serif; outline: none;
+      resize: none; min-height: 38px; max-height: 100px;
+      overflow-y: auto; transition: border-color 0.2s; line-height: 1.4;
+    }
+    .c-textarea:focus { border-color: #2563eb; }
+    .c-textarea::placeholder { color: #9ca3af; }
+    .c-send-btn {
+      width: 34px; height: 34px; border-radius: 50%; background: #2563eb;
+      border: none; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .c-send-btn:hover { opacity: 0.88; }
+    .c-send-btn:active { transform: scale(0.93); }
+    .c-send-btn:disabled { opacity: 0.35; cursor: not-allowed; background: #9ca3af; }
+
+    /* Comment List */
+    .comment-list { padding: 4px 0; }
+    .comment-item {
+      display: flex; gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #f7f8fa;
+    }
+    .comment-item:last-child { border-bottom: none; }
+    .cm-av {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #e0f2fe; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: #374151;
+    }
+    .cm-av img { width: 100%; height: 100%; object-fit: cover; }
+    .cm-body { flex: 1; min-width: 0; }
+    .cm-bubble {
+      background: #f7f8fa; border-radius: 0 12px 12px 12px;
+      padding: 9px 12px; display: inline-block; max-width: 100%;
+    }
+    .cm-name { font-size: 12px; font-weight: 700; color: #111; margin-bottom: 3px; }
+    .cm-text { font-size: 13px; color: #1f2937; line-height: 1.5; word-break: break-word; }
+    .cm-footer { display: flex; align-items: center; gap: 14px; margin-top: 5px; }
+    .cm-time { font-size: 11px; color: #9ca3af; }
+    .cm-like-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; color: #9ca3af; font-weight: 600;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex; align-items: center; gap: 4px; transition: color 0.15s;
+    }
+    .cm-like-btn:hover { color: #ef4444; }
+    .cm-like-btn.liked { color: #ef4444; }
+    .cm-reply-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 11px; color: #9ca3af; font-weight: 600;
+      font-family: 'Segoe UI', sans-serif; transition: color 0.15s;
+    }
+    .cm-reply-btn:hover { color: #374151; }
+
+    /* Replies */
+    .replies-wrap { padding-left: 42px; }
+    .reply-item { display: flex; gap: 8px; padding: 8px 0 4px; border-bottom: 1px solid #f7f8fa; }
+    .reply-item:last-child { border-bottom: none; }
+    .r-av {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #e0f2fe; flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #374151;
+    }
+    .r-av img { width: 100%; height: 100%; object-fit: cover; }
+    .r-bubble { background: #f7f8fa; border-radius: 0 10px 10px 10px; padding: 7px 10px; display: inline-block; max-width: 100%; }
+    .r-name { font-size: 11px; font-weight: 700; color: #111; margin-bottom: 2px; }
+    .r-text { font-size: 12px; color: #1f2937; line-height: 1.5; word-break: break-word; }
+    .r-footer { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .r-time { font-size: 10px; color: #9ca3af; }
+    .r-like-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 10px; color: #9ca3af; font-weight: 600;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex; align-items: center; gap: 3px; transition: color 0.15s;
+    }
+    .r-like-btn:hover { color: #ef4444; }
+    .r-like-btn.liked { color: #ef4444; }
+
+    /* Reply input inline */
+    .reply-input-row {
+      display: flex; align-items: flex-end; gap: 8px;
+      padding: 8px 0 4px; margin-left: 42px;
+    }
+    .reply-textarea {
+      flex: 1; background: #f7f8fa; border: 1.5px solid #e5e7eb;
+      border-radius: 16px; padding: 7px 12px; font-size: 12px; color: #111;
+      font-family: 'Segoe UI', sans-serif; outline: none; resize: none;
+      min-height: 32px; max-height: 80px; overflow-y: auto; transition: border-color 0.2s;
+    }
+    .reply-textarea:focus { border-color: #2563eb; }
+    .reply-textarea::placeholder { color: #9ca3af; }
+    .reply-send-btn {
+      width: 30px; height: 30px; border-radius: 50%; background: #2563eb;
+      border: none; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; transition: opacity 0.2s;
+    }
+    .reply-send-btn:hover { opacity: 0.88; }
+    .reply-send-btn:disabled { opacity: 0.3; cursor: not-allowed; background: #9ca3af; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: #9ca3af; font-size: 13px;
+    }
+    .empty-state span { font-size: 28px; display: block; margin-bottom: 8px; }
+
+    /* Bottom navbar */
+    .bottom-navbar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+      background: #fff; border-top: 1px solid #e5e7eb;
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 0 6px; z-index: 900;
+    }
+    .bottom-plus-btn {
+      width: 44px; height: 44px; border-radius: 50%; background: #6C63FF;
+      border: none; cursor: pointer; display: flex; align-items: center;
+      justify-content: center; box-shadow: 0 3px 12px rgba(108,99,255,0.45);
+      transition: transform 0.15s;
+    }
+    .bottom-plus-btn:active { transform: scale(0.93); }
+    .bottom-nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 2px; background: none; border: none;
+      cursor: pointer; color: #6b7280; padding: 4px 8px;
+    }
+    .bottom-nav-item span { font-size: 10px; font-weight: 500; line-height: 1; }
+
+    /* Utility */
+    .spinner {
+      width: 22px; height: 22px; border: 2.5px solid #e5e7eb;
+      border-top-color: #2563eb; border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-wrap { display: flex; justify-content: center; padding: 40px 0; }
+
+    .toast {
+      position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
+      background: #111; color: #fff; padding: 10px 20px; border-radius: 22px;
+      font-size: 12px; font-weight: 500; z-index: 2000; opacity: 0;
+      transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    .toast.show { opacity: 1; }
+
+    /* Auth modal */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(3px); }
+    .overlay.active { display: flex; }
+    .auth-modal { background: #fff; border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); position: relative; animation: popIn 0.22s ease; }
+    @keyframes popIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:none; } }
+    .auth-modal h2 { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 3px; }
+    .auth-modal .sub { font-size: 12px; color: #6b7280; margin-bottom: 22px; }
+    .auth-tabs { display: flex; border-bottom: 2px solid #f3f4f6; margin-bottom: 22px; }
+    .auth-tab { flex: 1; padding: 9px; border: none; background: none; font-size: 13px; font-weight: 600; color: #9ca3af; cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -2px; transition: color 0.15s, border-color 0.15s; }
+    .auth-tab.active { color: #111; border-bottom-color: #111; }
+    .auth-fields { display: flex; flex-direction: column; gap: 11px; }
+    .auth-input { width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 11px; font-size: 13px; outline: none; transition: border-color 0.2s; font-family: 'Segoe UI', sans-serif; }
+    .auth-input:focus { border-color: #374151; }
+    .auth-btn { width: 100%; padding: 12px; background: #111; color: #fff; border: none; border-radius: 11px; font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; font-family: 'Segoe UI', sans-serif; }
+    .auth-btn:hover { opacity: 0.85; }
+    .auth-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .auth-err { font-size: 12px; color: #ef4444; min-height: 14px; text-align: center; }
+    .modal-x { position: absolute; top: 14px; right: 16px; background: none; border: none; cursor: pointer; color: #9ca3af; font-size: 18px; line-height: 1; }
+    .modal-x:hover { color: #374151; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .post-card { animation: fadeIn 0.22s ease; }
+  </style>
+</head>
+<body>
+
+  <!-- APP LOADER -->
+  <div id="appLoader" style="position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- AUTH MODAL -->
+  <div class="overlay" id="authOverlay">
+    <div class="auth-modal">
+      <button class="modal-x" onclick="closeAuth()">✕</button>
+      <h2>স্বাগতম 👋</h2>
+      <p class="sub">আপনার অ্যাকাউন্টে প্রবেশ করুন</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">লগইন</button>
+        <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">সাইনআপ</button>
+      </div>
+      <div id="loginFields" class="auth-fields">
+        <input class="auth-input" type="email" id="liEmail" placeholder="ইমেইল অ্যাড্রেস">
+        <input class="auth-input" type="password" id="liPass" placeholder="পাসওয়ার্ড">
+        <p class="auth-err" id="liErr"></p>
+        <button class="auth-btn" id="liBtn" onclick="doLogin()">লগইন করুন</button>
+      </div>
+      <div id="signupFields" class="auth-fields" style="display:none;">
+        <input class="auth-input" type="text" id="suName" placeholder="আপনার নাম">
+        <input class="auth-input" type="email" id="suEmail" placeholder="ইমেইল অ্যাড্রেস">
+        <input class="auth-input" type="password" id="suPass" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)">
+        <p class="auth-err" id="suErr"></p>
+        <button class="auth-btn" id="suBtn" onclick="doSignup()">অ্যাকাউন্ট তৈরি করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <button class="top-bar-back" onclick="history.back()" aria-label="পেছনে যান">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span class="top-bar-title">পোস্ট</span>
+    <div class="top-bar-more" id="moreBtn" onclick="toggleMoreMenu()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      <div class="more-menu" id="moreMenu">
+        <div class="more-menu-item" onclick="sharePost()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          শেয়ার করুন
+        </div>
+        <div class="more-menu-item" id="deleteMenuItem" onclick="deletePost()" style="display:none;" class="danger">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          <span style="color:#ef4444">ডিলিট করুন</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN SCROLL -->
+  <div class="scroll-area">
+
+    <!-- POST CARD -->
+    <div id="postWrap">
+      <div class="loading-wrap"><div class="spinner"></div></div>
+    </div>
+
+    <!-- TAB SECTION -->
+    <div id="tabSection" style="display:none;">
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-item" id="tab-react" onclick="switchContentTab('react')">React</button>
+        <button class="tab-item active" id="tab-comment" onclick="switchContentTab('comment')">Comment</button>
+        <button class="tab-item" id="tab-share" onclick="switchContentTab('share')">Share</button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="tabContent">
+        <!-- content injected by JS -->
+      </div>
+
+      <!-- Comment Input (only visible on comment tab) -->
+      <div class="comment-input-wrap" id="commentInputWrap">
+        <div class="c-inp-av" id="commentAv">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </div>
+        <div class="c-textarea-wrap">
+          <textarea class="c-textarea" id="commentInput" placeholder="মন্তব্য করুন..." rows="1" oninput="autoResize(this)"></textarea>
+        </div>
+        <button class="c-send-btn" id="commentSendBtn" onclick="submitComment()" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAVBAR -->
+  <div class="bottom-navbar">
+    <button class="bottom-nav-item" onclick="window.location.href='/'">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="bottom-nav-item" onclick="navGuard('/friend')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Friend</span>
+    </button>
+    <button class="bottom-plus-btn" onclick="window.location.href='/create'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="bottom-nav-item" onclick="navGuard('/messages')">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+      <span>Inbox</span>
+    </button>
+    <button class="bottom-nav-item" onclick="onNavProfile()">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span>Me</span>
+    </button>
+  </div>
+
+
+  <script type="module">
+    import { auth, db } from "./config.js";
+    import {
+      onAuthStateChanged, signInWithEmailAndPassword,
+      createUserWithEmailAndPassword, updateProfile, signOut
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+    import {
+      ref, onValue, push, set, update, remove, get, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+    /* ── STATE ── */
+    let me = null;
+    let myProfile = null;
+    let _postAuthorUid = null;
+    let _postId = null;
+    let _post = null;
+    let _commentsUnsub = null;
+    let _currentTab = 'comment';
+
+    /* ── URL PARAMS ── */
+    (function parseParams() {
+      const sp = new URLSearchParams(location.search);
+      _postAuthorUid = sp.get('uid') || null;
+      _postId        = sp.get('id')  || null;
+      if (!_postAuthorUid || !_postId) {
+        const parts = location.pathname.replace(/^\/+/, '').split('/');
+        if (parts.length >= 3) {
+          _postAuthorUid = parts[1] || null;
+          _postId        = parts[2] || null;
+        }
+      }
+    })();
+
+    /* ── AUTH ── */
+    let _uiReady = false;
+    const _loaderTimer = setTimeout(() => {
+      document.getElementById('appLoader').style.display = 'none';
+      if (!_uiReady) init();
+    }, 4000);
+
+    onAuthStateChanged(auth, async (user) => {
+      clearTimeout(_loaderTimer);
+      document.getElementById('appLoader').style.display = 'none';
+      if (user) {
+        me = user;
+        try { await fetchMyProfile(); renderAvatarInputs(); } catch(e) { console.error(e); }
+      } else {
+        me = null; myProfile = null;
+      }
+      _uiReady = true;
+      init();
+    });
+
+    function init() {
+      if (!_postAuthorUid || !_postId) {
+        document.getElementById('postWrap').innerHTML =
+          `<div class="empty-state"><span>🔍</span>পোস্ট খুঁজে পাওয়া যায়নি</div>`;
+        return;
+      }
+      loadPost();
+      setupCommentInput();
+    }
+
+    /* ── MY PROFILE ── */
+    async function fetchMyProfile() {
+      if (!me) { myProfile = null; return; }
+      const snap = await get(ref(db, `users/${me.uid}`));
+      const d = snap.exists() ? snap.val() : {};
+      myProfile = {
+        id:         me.uid,
+        full_name:  d.name || d.displayName || d.fullName || d.userName || me.displayName || null,
+        username:   d.username || d.userName || null,
+        avatar_url: d.profilePhotoUrl || d.photoURL || me.photoURL || null,
+        ...d
+      };
+    }
+
+    function avatarHtml(profile, size = 32) {
+      const name = profile?.full_name || profile?.username || '?';
+      const url  = profile?.avatar_url;
+      if (url) return `<img src="${esc(url)}" alt="${esc(name)}" style="width:${size}px;height:${size}px;object-fit:cover;border-radius:50%;">`;
+      return `<span style="font-size:${Math.round(size*0.42)}px;font-weight:700;color:#374151;">${name.charAt(0).toUpperCase()}</span>`;
+    }
+
+    function renderAvatarInputs() {
+      const av = document.getElementById('commentAv');
+      if (me && myProfile) {
+        av.innerHTML = avatarHtml(myProfile, 30);
+        av.style.background = myProfile?.avatar_url ? 'transparent' : '#e0f2fe';
+      }
+    }
+
+    /* ── LOAD POST ── */
+    function loadPost() {
+      const wrap = document.getElementById('postWrap');
+      onValue(ref(db, `posts/${_postAuthorUid}/${_postId}`), async (snap) => {
+        if (!snap.exists()) {
+          wrap.innerHTML = `<div class="empty-state"><span>🔍</span>পোস্ট খুঁজে পাওয়া যায়নি</div>`;
+          return;
+        }
+        _post = { id: _postId, uid: _postAuthorUid, ...snap.val() };
+        document.title = (_post.authorName || 'পোস্ট') + ' — Insight';
+        wrap.innerHTML = renderPostCard(_post);
+
+        /* delete menu show/hide */
+        if (me && me.uid === _post.uid) {
+          document.getElementById('deleteMenuItem').style.display = 'flex';
+        }
+        /* লাইক লাইভ */
+        if (me) attachLikeListener(_post);
+
+        /* Tab section show */
+        document.getElementById('tabSection').style.display = 'block';
+
+        /* default tab: comment */
+        switchContentTab('comment');
+
+      }, { onlyOnce: false });
+    }
+
+    /* ── RENDER POST CARD ── */
+    function renderPostCard(post) {
+      const isAnon  = !!post.isAnonymous;
+      const name    = isAnon ? 'Anonymous' : (post.authorName || 'User');
+      const url     = isAnon ? null : post.authorAvatar;
+      const avBg    = url ? 'transparent' : '#e0f2fe';
+      const avHtml  = url ? `<img src="${esc(url)}" alt="${esc(name)}">` : name.charAt(0).toUpperCase();
+      const timeStr = timeAgo(post.timestamp);
+      const fullDate= post.timestamp
+        ? new Date(post.timestamp).toLocaleString('bn-BD', { dateStyle:'medium', timeStyle:'short' })
+        : '';
+      const likesCnt = post.likesCount || 0;
+      const cmtCnt   = post.commentsCount || 0;
+
+      /* মিডিয়া */
+      let mediaHtml = '';
+      if (post.mediaUrls && Array.isArray(post.mediaUrls) && post.mediaUrls.length > 0) {
+        const cnt = post.mediaUrls.length;
+        const cls = cnt >= 4 ? 'g4' : `g${cnt}`;
+        mediaHtml = `<div class="post-media"><div class="media-gallery ${cls}">` +
+          post.mediaUrls.slice(0, 4).map((mu, i) => {
+            if (/\.(mp4|mov|webm)/i.test(mu))
+              return `<div class="g-item"><video src="${esc(mu)}" controls playsinline></video></div>`;
+            return `<div class="g-item"><img src="${esc(mu)}" alt="media ${i+1}" loading="lazy"></div>`;
+          }).join('') +
+          `</div></div>`;
+      } else if (post.mediaUrl) {
+        if (post.mediaType === 'video') {
+          mediaHtml = `<div class="post-media"><video src="${esc(post.mediaUrl)}" controls playsinline></video></div>`;
+        } else if (post.mediaType === 'audio') {
+          mediaHtml = `<div class="post-media" style="padding:14px 16px;background:#f0f9ff;">
+            <audio src="${esc(post.mediaUrl)}" controls style="width:100%;height:32px;"></audio></div>`;
+        } else {
+          mediaHtml = `<div class="post-media"><img src="${esc(post.mediaUrl)}" alt="post media" loading="lazy"></div>`;
+        }
+      }
+
+      return `
+      <div class="post-card" id="post-${post.uid}-${post.id}">
+        <!-- Header: avatar + name/time -->
+        <div class="post-header">
+          <div class="post-av" style="background:${avBg};" onclick="openProfile('${isAnon?'':post.uid}')">${avHtml}</div>
+          <div class="post-user-info" onclick="openProfile('${isAnon?'':post.uid}')">
+            <div class="post-username">${esc(name)}</div>
+            <div class="post-time">${timeStr}${fullDate ? ' · ' + fullDate : ''}</div>
+          </div>
+        </div>
+
+        <!-- Full caption -->
+        ${post.caption ? `<div class="post-caption">${esc(post.caption)}</div>` : ''}
+
+        <!-- Media -->
+        ${mediaHtml}
+
+        <!-- Action Row: react/comment/share + save -->
+        <div class="action-row">
+          <div class="action-left">
+            <button class="act-btn" id="lb-detail" onclick="toggleLike('${post.uid}','${post.id}')">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span id="likeCount">${likesCnt}</span>
+            </button>
+            <button class="act-btn" onclick="switchContentTab('comment');scrollToTab()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>${cmtCnt}</span>
+            </button>
+            <button class="act-btn" onclick="sharePost()">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+          <button class="save-btn" id="saveBtn" onclick="toggleSave('${post.uid}','${post.id}')">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+          </button>
+        </div>
+      </div>`;
+    }
+
+    /* ── LIKE ── */
+    function attachLikeListener(post) {
+      onValue(ref(db, `posts/${post.uid}/${post.id}/likes/${me.uid}`), (snap) => {
+        const btn = document.getElementById('lb-detail');
+        if (btn) btn.classList.toggle('liked', snap.exists());
+      });
+      onValue(ref(db, `posts/${post.uid}/${post.id}/likesCount`), (snap) => {
+        const el = document.getElementById('likeCount');
+        if (el) el.textContent = snap.exists() ? (snap.val() || 0) : 0;
+      });
+      /* Save state */
+      if (me) {
+        onValue(ref(db, `users/${me.uid}/saved/${post.uid}_${post.id}`), (snap) => {
+          const btn = document.getElementById('saveBtn');
+          if (btn) btn.classList.toggle('saved', snap.exists());
+        });
+      }
+    }
+
+    async function toggleLike(authorUid, postId) {
+      if (!me) { openAuth(); return; }
+      const likeRef  = ref(db, `posts/${authorUid}/${postId}/likes/${me.uid}`);
+      const countRef = ref(db, `posts/${authorUid}/${postId}/likesCount`);
+      const [snap, cSnap] = await Promise.all([get(likeRef), get(countRef)]);
+      const cur = cSnap.exists() ? (cSnap.val() || 0) : 0;
+      if (snap.exists()) {
+        await remove(likeRef);
+        await set(countRef, Math.max(0, cur - 1));
+      } else {
+        await set(likeRef, true);
+        await set(countRef, cur + 1);
+      }
+    }
+
+    async function toggleSave(authorUid, postId) {
+      if (!me) { openAuth(); return; }
+      const saveRef = ref(db, `users/${me.uid}/saved/${authorUid}_${postId}`);
+      const snap = await get(saveRef);
+      if (snap.exists()) {
+        await remove(saveRef);
+        toast('সেভ থেকে সরানো হয়েছে');
+      } else {
+        await set(saveRef, { postUid: authorUid, postId, savedAt: Date.now() });
+        toast('পোস্ট সেভ হয়েছে ✓');
+      }
+    }
+
+    /* ── DELETE ── */
+    async function deletePost() {
+      if (!_post || !me || me.uid !== _post.uid) return;
+      if (!confirm('পোস্টটি ডিলিট করবেন?')) return;
+      try {
+        await remove(ref(db, `posts/${_post.uid}/${_post.id}`));
+        toast('পোস্ট ডিলিট হয়েছে');
+        setTimeout(() => history.back(), 1200);
+      } catch(e) { toast('ডিলিট হয়নি'); }
+    }
+
+    /* ── SHARE ── */
+    function sharePost() {
+      if (!_post) return;
+      const url = `${location.origin}/post?uid=${_post.uid}&id=${_post.id}`;
+      if (navigator.share) {
+        navigator.share({ title: 'Insight পোস্ট', url });
+      } else {
+        navigator.clipboard.writeText(url).then(() => toast('লিংক কপি হয়েছে ✓'));
+      }
+    }
+
+    /* ── MORE MENU ── */
+    function toggleMoreMenu() {
+      document.getElementById('moreMenu').classList.toggle('open');
+    }
+    document.addEventListener('click', (e) => {
+      const btn = document.getElementById('moreBtn');
+      if (btn && !btn.contains(e.target)) {
+        document.getElementById('moreMenu').classList.remove('open');
+      }
+    });
+
+    /* ── TAB SWITCH ── */
+    function switchContentTab(tab) {
+      _currentTab = tab;
+      ['react','comment','share'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+      });
+
+      const inputWrap = document.getElementById('commentInputWrap');
+      inputWrap.style.display = tab === 'comment' ? 'flex' : 'none';
+
+      const content = document.getElementById('tabContent');
+
+      if (tab === 'comment') {
+        renderCommentTab(content);
+      } else if (tab === 'react') {
+        renderReactTab(content);
+      } else if (tab === 'share') {
+        renderShareTab(content);
+      }
+    }
+
+    function scrollToTab() {
+      const el = document.getElementById('tabSection');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ── REACT TAB ── */
+    function renderReactTab(container) {
+      if (!_postAuthorUid || !_postId) return;
+      container.innerHTML = `<div class="loading-wrap"><div class="spinner"></div></div>`;
+      get(ref(db, `posts/${_postAuthorUid}/${_postId}/likes`)).then(snap => {
+        if (!snap.exists() || !snap.val()) {
+          container.innerHTML = `<div class="empty-state"><span>❤️</span>এখনও কেউ রিয়েক্ট করেনি</div>`;
+          return;
+        }
+        const uids = Object.keys(snap.val());
+        container.innerHTML = `<div class="react-list">` +
+          uids.map(uid => `
+            <div class="react-item" onclick="openProfile('${uid}')">
+              <div class="ri-av" id="ri-av-${uid}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              </div>
+              <div>
+                <div class="ri-name" id="ri-name-${uid}">লোড হচ্ছে...</div>
+              </div>
+              <span class="react-emoji">❤️</span>
+            </div>`).join('') +
+          `</div>`;
+
+        /* প্রতিটি user এর প্রোফাইল লোড */
+        uids.forEach(uid => loadUserPreview(uid, `ri-av-${uid}`, `ri-name-${uid}`));
+      });
+    }
+
+    /* ── SHARE TAB ── */
+    function renderShareTab(container) {
+      container.innerHTML = `<div class="empty-state"><span>🔗</span>এখনও কেউ শেয়ার করেনি</div>`;
+    }
+
+    /* ── COMMENT TAB ── */
+    function renderCommentTab(container) {
+      if (_commentsUnsub) { _commentsUnsub(); _commentsUnsub = null; }
+
+      container.innerHTML = `<div class="loading-wrap"><div class="spinner"></div></div>`;
+
+      _commentsUnsub = onValue(
+        ref(db, `comments/${_postAuthorUid}/${_postId}`),
+        (snap) => {
+          if (_currentTab !== 'comment') return;
+
+          if (!snap.exists()) {
+            container.innerHTML = `<div class="empty-state"><span>💬</span>প্রথম মন্তব্য করুন!</div>`;
+            return;
+          }
+
+          const all = [];
+          snap.forEach(c => all.push({ id: c.key, ...c.val() }));
+          all.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+          container.innerHTML = `<div class="comment-list">` + all.map(c => renderCommentItem(c)).join('') + `</div>`;
+
+          /* Events */
+          container.querySelectorAll('.cm-reply-btn').forEach(btn => {
+            btn.addEventListener('click', () => toggleReplyInput(btn.dataset.cid));
+          });
+          container.querySelectorAll('.cm-like-btn[data-cid]').forEach(btn => {
+            btn.addEventListener('click', () => toggleCommentLike(btn.dataset.cid, btn));
+          });
+          container.querySelectorAll('.r-like-btn[data-rid]').forEach(btn => {
+            btn.addEventListener('click', () => toggleReplyLike(btn.dataset.cid, btn.dataset.rid, btn));
+          });
+          container.querySelectorAll('.reply-send-btn[data-cid]').forEach(btn => {
+            btn.addEventListener('click', () => submitReply(btn.dataset.cid));
+          });
+          container.querySelectorAll('.reply-textarea[data-cid]').forEach(inp => {
+            inp.addEventListener('input', () => {
+              const sb = container.querySelector(`.reply-send-btn[data-cid="${inp.dataset.cid}"]`);
+              if (sb) sb.disabled = inp.value.trim().length === 0;
+            });
+            inp.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitReply(inp.dataset.cid); }
+            });
+          });
+
+          /* My likes */
+          if (me) {
+            all.forEach(c => {
+              const btn = container.querySelector(`.cm-like-btn[data-cid="${c.id}"]`);
+              if (btn && c.likes && c.likes[me.uid]) btn.classList.add('liked');
+            });
+          }
+        },
+        { onlyOnce: false }
+      );
+    }
+
+    function renderCommentItem(c) {
+      const avBg = c.authorAvatar ? 'transparent' : '#e0f2fe';
+      const avHtml = c.authorAvatar
+        ? `<img src="${esc(c.authorAvatar)}" alt="${esc(c.authorName||'')}">`
+        : `<span style="font-size:12px;font-weight:700;color:#374151;">${(c.authorName||'?').charAt(0).toUpperCase()}</span>`;
+
+      const replies = c.replies
+        ? Object.entries(c.replies).map(([rid, r]) => renderReplyItem(c.id, rid, r)).join('')
+        : '';
+
+      const replyCount = c.replies ? Object.keys(c.replies).length : 0;
+
+      return `
+      <div class="comment-item" id="comment-${c.id}">
+        <div class="cm-av" style="background:${avBg};">${avHtml}</div>
+        <div class="cm-body">
+          <div class="cm-bubble">
+            <div class="cm-name">${esc(c.authorName || 'User')}</div>
+            <div class="cm-text">${esc(c.text || '')}</div>
+          </div>
+          <div class="cm-footer">
+            <span class="cm-time">${timeAgo(c.timestamp)}</span>
+            <button class="cm-like-btn" data-cid="${c.id}">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              ${c.likesCount > 0 ? c.likesCount : 'লাইক'}
+            </button>
+            <button class="cm-reply-btn" data-cid="${c.id}">রিপ্লাই${replyCount > 0 ? ` (${replyCount})` : ''}</button>
+          </div>
+          ${replies ? `<div class="replies-wrap" id="replies-${c.id}">${replies}</div>` : `<div class="replies-wrap" id="replies-${c.id}"></div>`}
+          <div id="reply-input-wrap-${c.id}" style="display:none;" class="reply-input-row">
+            <textarea class="reply-textarea" data-cid="${c.id}" placeholder="রিপ্লাই করুন..." rows="1" oninput="autoResize(this)"></textarea>
+            <button class="reply-send-btn" data-cid="${c.id}" disabled>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderReplyItem(cid, rid, r) {
+      const avBg = r.authorAvatar ? 'transparent' : '#e0f2fe';
+      const avHtml = r.authorAvatar
+        ? `<img src="${esc(r.authorAvatar)}" alt="${esc(r.authorName||'')}">`
+        : `<span style="font-size:10px;font-weight:700;color:#374151;">${(r.authorName||'?').charAt(0).toUpperCase()}</span>`;
+      return `
+      <div class="reply-item" id="reply-${rid}">
+        <div class="r-av" style="background:${avBg};">${avHtml}</div>
+        <div class="cm-body">
+          <div class="r-bubble">
+            <div class="r-name">${esc(r.authorName || 'User')}</div>
+            <div class="r-text">${esc(r.text || '')}</div>
+          </div>
+          <div class="r-footer">
+            <span class="r-time">${timeAgo(r.timestamp)}</span>
+            <button class="r-like-btn" data-cid="${cid}" data-rid="${rid}">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              ${r.likesCount > 0 ? r.likesCount : 'লাইক'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    /* ── USER PREVIEW ── */
+    async function loadUserPreview(uid, avId, nameId) {
+      try {
+        const snap = await get(ref(db, `users/${uid}`));
+        const d = snap.exists() ? snap.val() : {};
+        const name = d.name || d.displayName || d.fullName || 'User';
+        const photoUrl = d.profilePhotoUrl || d.photoURL || null;
+        const avEl = document.getElementById(avId);
+        const nameEl = document.getElementById(nameId);
+        if (nameEl) nameEl.textContent = name;
+        if (avEl) {
+          if (photoUrl) {
+            avEl.innerHTML = `<img src="${esc(photoUrl)}" style="width:36px;height:36px;object-fit:cover;border-radius:50%;">`;
+            avEl.style.background = 'transparent';
+          } else {
+            avEl.innerHTML = `<span style="font-size:14px;font-weight:700;color:#374151;">${name.charAt(0).toUpperCase()}</span>`;
+          }
+        }
+      } catch(e) {}
+    }
+
+    /* ── COMMENT INPUT SETUP ── */
+    function setupCommentInput() {
+      const inp = document.getElementById('commentInput');
+      const btn = document.getElementById('commentSendBtn');
+      if (!inp || !btn) return;
+      inp.addEventListener('input', () => { btn.disabled = inp.value.trim().length === 0; });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!btn.disabled) submitComment(); }
+      });
+    }
+
+    /* ── SUBMIT COMMENT ── */
+    async function submitComment() {
+      if (!me) { openAuth(); return; }
+      const inp = document.getElementById('commentInput');
+      const btn = document.getElementById('commentSendBtn');
+      const text = inp.value.trim();
+      if (!text) return;
+      btn.disabled = true;
+      try {
+        const newRef = push(ref(db, `comments/${_postAuthorUid}/${_postId}`));
+        await set(newRef, {
+          text,
+          authorUid:    me.uid,
+          authorName:   myProfile?.full_name || me.displayName || 'User',
+          authorAvatar: myProfile?.avatar_url || me.photoURL || null,
+          timestamp:    Date.now(),
+          likesCount:   0
+        });
+        const countRef = ref(db, `posts/${_postAuthorUid}/${_postId}/commentsCount`);
+        const cSnap = await get(countRef);
+        await set(countRef, (cSnap.exists() ? (cSnap.val() || 0) : 0) + 1);
+        inp.value = ''; inp.style.height = ''; btn.disabled = true;
+        toast('মন্তব্য যোগ হয়েছে ✓');
+      } catch(err) { console.error(err); toast('মন্তব্য হয়নি'); btn.disabled = false; }
+    }
+
+    /* ── REPLY ── */
+    function toggleReplyInput(cid) {
+      if (!me) { openAuth(); return; }
+      const wrap = document.getElementById(`reply-input-wrap-${cid}`);
+      if (!wrap) return;
+      const isOpen = wrap.style.display !== 'none';
+      wrap.style.display = isOpen ? 'none' : 'flex';
+      if (!isOpen) { const inp = wrap.querySelector('.reply-textarea'); if (inp) inp.focus(); }
+    }
+
+    async function submitReply(cid) {
+      if (!me) { openAuth(); return; }
+      const wrap = document.getElementById(`reply-input-wrap-${cid}`);
+      const inp  = wrap?.querySelector('.reply-textarea');
+      const btn  = wrap?.querySelector('.reply-send-btn');
+      const text = inp?.value.trim();
+      if (!text) return;
+      if (btn) btn.disabled = true;
+      try {
+        await set(push(ref(db, `comments/${_postAuthorUid}/${_postId}/${cid}/replies`)), {
+          text,
+          authorUid:    me.uid,
+          authorName:   myProfile?.full_name || me.displayName || 'User',
+          authorAvatar: myProfile?.avatar_url || me.photoURL || null,
+          timestamp:    Date.now(),
+          likesCount:   0
+        });
+        if (inp) { inp.value = ''; inp.style.height = ''; }
+        if (btn) btn.disabled = true;
+        if (wrap) wrap.style.display = 'none';
+        toast('রিপ্লাই যোগ হয়েছে ✓');
+      } catch(err) { toast('রিপ্লাই হয়নি'); if (btn) btn.disabled = false; }
+    }
+
+    /* ── COMMENT LIKE ── */
+    async function toggleCommentLike(cid, btn) {
+      if (!me) { openAuth(); return; }
+      const likeRef  = ref(db, `comments/${_postAuthorUid}/${_postId}/${cid}/likes/${me.uid}`);
+      const countRef = ref(db, `comments/${_postAuthorUid}/${_postId}/${cid}/likesCount`);
+      const [snap, cSnap] = await Promise.all([get(likeRef), get(countRef)]);
+      const cur = cSnap.exists() ? (cSnap.val() || 0) : 0;
+      if (snap.exists()) {
+        await remove(likeRef); await set(countRef, Math.max(0, cur - 1));
+        btn.classList.remove('liked');
+        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${Math.max(0, cur - 1) || 'লাইক'}`;
+      } else {
+        await set(likeRef, true); await set(countRef, cur + 1);
+        btn.classList.add('liked');
+        btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> ${cur + 1}`;
+      }
+    }
+
+    /* ── REPLY LIKE ── */
+    async function toggleReplyLike(cid, rid, btn) {
+      if (!me) { openAuth(); return; }
+      const likeRef  = ref(db, `comments/${_postAuthorUid}/${_postId}/${cid}/replies/${rid}/likes/${me.uid}`);
+      const countRef = ref(db, `comments/${_postAuthorUid}/${_postId}/${cid}/replies/${rid}/likesCount`);
+      const [snap, cSnap] = await Promise.all([get(likeRef), get(countRef)]);
+      const cur = cSnap.exists() ? (cSnap.val() || 0) : 0;
+      if (snap.exists()) {
+        await remove(likeRef); await set(countRef, Math.max(0, cur - 1)); btn.classList.remove('liked');
+      } else {
+        await set(likeRef, true); await set(countRef, cur + 1); btn.classList.add('liked');
+      }
+    }
+
+    /* ── AUTH ── */
+    function openAuth()  { document.getElementById('authOverlay').classList.add('active'); }
+    function closeAuth() { document.getElementById('authOverlay').classList.remove('active'); }
+    function switchTab(tab) {
+      document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+      document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+      document.getElementById('loginFields').style.display  = tab==='login'  ? 'flex' : 'none';
+      document.getElementById('signupFields').style.display = tab==='signup' ? 'flex' : 'none';
+    }
+    async function doLogin() {
+      const email = document.getElementById('liEmail').value.trim();
+      const pass  = document.getElementById('liPass').value;
+      const errEl = document.getElementById('liErr');
+      const btn   = document.getElementById('liBtn');
+      if (!email || !pass) { errEl.textContent='ইমেইল ও পাসওয়ার্ড দিন'; return; }
+      btn.disabled=true; btn.textContent='লোড হচ্ছে...'; errEl.textContent='';
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        btn.disabled=false; btn.textContent='লগইন করুন';
+        closeAuth(); toast('সফলভাবে লগইন হয়েছে ✓');
+      } catch {
+        btn.disabled=false; btn.textContent='লগইন করুন';
+        errEl.textContent='ইমেইল বা পাসওয়ার্ড ভুল হয়েছে';
+      }
+    }
+    async function doSignup() {
+      const name  = document.getElementById('suName').value.trim();
+      const email = document.getElementById('suEmail').value.trim();
+      const pass  = document.getElementById('suPass').value;
+      const errEl = document.getElementById('suErr');
+      const btn   = document.getElementById('suBtn');
+      if (!name||!email||!pass) { errEl.textContent='সব তথ্য পূরণ করুন'; return; }
+      if (pass.length<6) { errEl.textContent='পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে'; return; }
+      btn.disabled=true; btn.textContent='তৈরি হচ্ছে...'; errEl.textContent='';
+      try {
+        const username = name.toLowerCase().replace(/\s+/g,'_');
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(cred.user, { displayName: name });
+        await set(ref(db, `users/${cred.user.uid}`), { name, username, profilePhotoUrl: null, postsCount: 0, friendsCount: 0, followersCount: 0 });
+        btn.disabled=false; btn.textContent='অ্যাকাউন্ট তৈরি করুন';
+        closeAuth(); toast('অ্যাকাউন্ট তৈরি হয়েছে ✓');
+      } catch(err) {
+        btn.disabled=false; btn.textContent='অ্যাকাউন্ট তৈরি করুন';
+        errEl.textContent = err?.code?.includes('email-already-in-use') ? 'এই ইমেইল দিয়ে আগেই অ্যাকাউন্ট আছে' : 'অ্যাকাউন্ট তৈরি করা সম্ভব হয়নি';
+      }
+    }
+
+    /* ── NAV ── */
+    function onNavProfile() { if (me) { window.location.href = '/profile'; } else { openAuth(); } }
+    function navGuard(path) { if (!me) { openAuth(); return; } window.location.href = path; }
+    function openProfile(uid) { if (uid) window.location.href = `/profile?uid=${encodeURIComponent(uid)}`; }
+
+    /* ── UTILS ── */
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const sec = Math.floor((Date.now() - ts) / 1000);
+      if (sec < 60) return 'এইমাত্র';
+      const m = Math.floor(sec/60); if (m < 60) return `${m} মিনিট আগে`;
+      const h = Math.floor(m/60);   if (h < 24) return `${h} ঘণ্টা আগে`;
+      return `${Math.floor(h/24)} দিন আগে`;
+    }
+    function esc(s) {
+      const d = document.createElement('div');
+      d.appendChild(document.createTextNode(s || ''));
+      return d.innerHTML;
+    }
+    function toast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg; el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    document.getElementById('authOverlay').addEventListener('click', e => {
+      if (e.target.id === 'authOverlay') closeAuth();
+    });
+
+    /* Global expose */
+    Object.assign(window, {
+      closeAuth, switchTab, doLogin, doSignup,
+      toggleLike, toggleSave, deletePost, sharePost,
+      switchContentTab, scrollToTab,
+      submitComment, toggleReplyInput, submitReply,
+      onNavProfile, navGuard, openProfile,
+      autoResize, toast, toggleMoreMenu
+    });
+  </script>
+</body>
+</html>

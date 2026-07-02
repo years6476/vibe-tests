@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Profile — Insight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary:#8A4FF7; --primary-grad:linear-gradient(to right,#6D3DF5,#8A4DFF,#A85CF6);
+      --bg:#fff; --border:#e8e8e8; --surface:#f7f7f7;
+      --text:#1a1a1a; --text-2:#555; --text-muted:#aaa;
+      --topbar-h:52px; --pad:14px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html,body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+    /* TOPBAR */
+    .topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;justify-content:center;}
+    .topbar-inner{width:100%;max-width:420px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;}
+    .icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:50%;cursor:pointer;color:var(--text);transition:background .15s;}
+    .icon-btn:hover{background:var(--surface);}
+    .topbar-title{font-size:16px;font-weight:600;}
+    .save-btn{background:none;border:none;color:#0A7AFF;font-size:14px;font-weight:600;font-family:'Poppins',sans-serif;cursor:pointer;padding:4px 2px;min-width:44px;position:relative;transition:opacity .2s;}
+    .save-btn:hover{opacity:.75;} .save-btn:disabled{opacity:.45;cursor:not-allowed;}
+    .save-btn.loading{color:transparent;}
+    .save-btn.loading::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:15px;height:15px;border:2px solid rgba(10,122,255,.25);border-top-color:#0A7AFF;border-radius:50%;animation:spin .6s linear infinite;}
+    @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+    /* MAIN */
+    .main{padding-top:var(--topbar-h);padding-bottom:48px;display:flex;flex-direction:column;align-items:center;}
+    .page-body{width:100%;max-width:420px;}
+
+    /* COVER */
+    .cover-wrap{position:relative;cursor:pointer;}
+    .cover-photo{width:100%;height:145px;background:#d9d9d9;border-radius:10px;overflow:hidden;position:relative;}
+    .cover-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+    .cover-overlay{position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;gap:6px;color:#fff;font-size:13px;font-weight:500;border-radius:10px;}
+
+    /* PROFILE PIC */
+    .pic-row{padding:0 var(--pad);margin-top:-46px;margin-bottom:14px;position:relative;z-index:10;}
+    .profile-pic-edit{width:92px;height:92px;border-radius:50%;border:3px solid #fff;background:#e0e0e0;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.12);position:relative;cursor:pointer;}
+    .profile-pic-edit img{width:100%;height:100%;object-fit:cover;display:block;}
+    .default-av{color:#bbb;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+    .pic-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;}
+
+    /* BOXES */
+    .sections{display:flex;flex-direction:column;gap:12px;padding:0 var(--pad);}
+    .form-box{background:transparent;border-radius:10px;overflow:visible;border:1.5px solid var(--border);}
+    .section-label{font-size:12px;font-weight:600;color:var(--text-muted);margin:14px 2px 6px;text-transform:uppercase;letter-spacing:.5px;}
+
+    /* FIELD ROW */
+    .field-row{display:flex;align-items:center;padding:13px 16px;gap:10px;min-height:48px;position:relative;}
+    .row-label{font-size:12px;font-weight:500;color:var(--text);flex-shrink:0;min-width:90px;}
+    .row-input{flex:1;border:none;outline:none;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text-2);background:transparent;text-align:left;}
+    .row-input::placeholder{color:#d0d0d0;}
+    .row-value{flex:1;font-size:12px;color:var(--text-muted);text-align:right;}
+    .row-divider{height:1px;background:var(--border);margin:0 16px;}
+
+    /* BIO */
+    .bio-row{flex-direction:column;align-items:stretch;gap:8px;padding:13px 16px;}
+    .bio-top{display:flex;justify-content:space-between;align-items:center;}
+    .bio-label{font-size:12px;font-weight:500;color:var(--text);}
+    .word-count{font-size:11px;color:var(--text-muted);}
+    .bio-input{width:100%;border:none;outline:none;resize:none;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text-2);background:transparent;line-height:1.55;min-height:68px;}
+    .bio-input::placeholder{color:#d0d0d0;}
+
+    /* LOCATION */
+    .loc-group{flex:1;display:flex;align-items:center;gap:5px;position:relative;}
+    .loc-icon{color:var(--text-muted);flex-shrink:0;display:flex;}
+    .loc-suggestions{position:absolute;top:calc(100% + 8px);left:-106px;right:-16px;background:#fff;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.13);border:1px solid var(--border);z-index:300;overflow:hidden;}
+    .loc-item{padding:10px 14px;font-size:12px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border);line-height:1.4;}
+    .loc-item:last-child{border-bottom:none;}
+    .loc-item:hover{background:var(--surface);}
+    .loc-spinner{padding:10px 14px;font-size:12px;color:var(--text-muted);}
+
+    /* LINKS */
+    .link-item{display:flex;align-items:center;padding:11px 16px;gap:10px;}
+    .link-platform{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+    .link-icon{width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+    .link-icon svg{width:22px;height:22px;}
+    .link-platform-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;}
+    .link-url{font-size:11.5px;color:#0A7AFF;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;display:block;text-align:right;flex-shrink:0;}
+    .link-url:hover{text-decoration:underline;}
+    .link-delete{background:none;border:none;cursor:pointer;color:#ccc;padding:4px;display:flex;align-items:center;flex-shrink:0;line-height:0;transition:color .15s;}
+    .link-delete:hover{color:#e63950;}
+    .add-link-row{display:flex;align-items:center;padding:11px 16px;gap:10px;}
+    .add-link-btn{background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#0A7AFF;font-family:'Poppins',sans-serif;white-space:nowrap;flex-shrink:0;padding:0;}
+    .add-link-btn:hover{opacity:.8;}
+    .link-inline-input{flex:1;border:none;outline:none;font-size:12px;font-family:'Poppins',sans-serif;color:var(--text-2);background:transparent;}
+    .link-inline-input::placeholder{color:#d0d0d0;}
+
+    /* TOGGLE SWITCH */
+    .toggle-wrap{display:flex;align-items:center;gap:8px;margin-left:auto;}
+    .toggle-sub{font-size:12px;color:var(--text-2);white-space:nowrap;}
+    .t-switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0;}
+    .t-switch input{opacity:0;width:0;height:0;position:absolute;}
+    .t-knob{position:absolute;inset:0;background:#ddd;border-radius:11px;transition:background .2s;cursor:pointer;}
+    .t-knob::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+    .t-switch input:checked + .t-knob{background:var(--primary);}
+    .t-switch input:checked + .t-knob::after{transform:translateX(18px);}
+
+    /* EMAIL ROW */
+    .email-val{flex:1;font-size:12px;color:var(--text-muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+    /* LOGOUT BOX */
+    .logout-box{border-color:var(--border);overflow:hidden;}
+    .logout-btn{width:100%;padding:14px 16px;background:none;border:none;font-size:14px;font-weight:600;font-family:'Poppins',sans-serif;color:#e63950;cursor:pointer;text-align:left;transition:background .15s;}
+    .logout-btn:hover{background:#fff5f5;}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="icon-btn" id="backBtn">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span class="topbar-title">Edit Profile</span>
+    <button class="save-btn" id="saveBtn">Save</button>
+  </div>
+</header>
+
+<main class="main">
+<div class="page-body">
+
+  <!-- COVER -->
+  <div class="cover-wrap" id="coverWrap">
+    <div class="cover-photo" id="coverPhoto">
+      <div class="cover-overlay">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Change Cover
+      </div>
+    </div>
+    <input type="file" id="coverInput" accept="image/*" style="display:none"/>
+  </div>
+
+  <!-- PROFILE PIC -->
+  <div class="pic-row">
+    <div class="profile-pic-edit" id="profilePicEdit">
+      <svg class="default-av" width="48" height="48" viewBox="0 0 24 24" fill="#c0c0c0"><path d="M12 12c2.67 0 8 1.34 8 4v2H4v-2c0-2.66 5.33-4 8-4zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+      <div class="pic-overlay">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+    </div>
+    <input type="file" id="picInput" accept="image/*" style="display:none"/>
+  </div>
+
+  <div class="sections">
+
+    <!-- BOX 1: Name · Username · Bio -->
+    <div class="form-box">
+      <div class="field-row">
+        <span class="row-label">Name</span>
+        <input class="row-input" type="text" id="nameInput" placeholder="Your name" autocomplete="name"/>
+      </div>
+      <div class="row-divider"></div>
+      <div class="field-row">
+        <span class="row-label">Username</span>
+        <input class="row-input" type="text" id="usernameInput" placeholder="@username" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="row-divider"></div>
+      <div class="field-row bio-row">
+        <div class="bio-top">
+          <span class="bio-label">Bio</span>
+          <span class="word-count"><span id="bioWords">0</span>/150 words</span>
+        </div>
+        <textarea class="bio-input" id="bioInput" rows="3" placeholder="Write something about yourself…"></textarea>
+      </div>
+    </div>
+
+    <!-- BOX 2: Location (OSM) · Profession -->
+    <div class="form-box">
+      <!-- Location with OSM autocomplete -->
+      <div class="field-row">
+        <span class="row-label">Location</span>
+        <div class="loc-group">
+          <span class="loc-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </span>
+          <input class="row-input" type="text" id="locationInput"
+                 placeholder="Search location…" autocomplete="off"/>
+          <!-- Suggestions dropdown -->
+          <div class="loc-suggestions" id="locSuggestions" style="display:none"></div>
+        </div>
+      </div>
+      <div class="row-divider"></div>
+      <div class="field-row">
+        <span class="row-label">Profession</span>
+        <input class="row-input" type="text" id="professionInput" placeholder="What you do"/>
+      </div>
+    </div>
+
+    <!-- BOX 3: Links -->
+    <p class="section-label">Links</p>
+    <div class="form-box" id="linksBox">
+      <div id="linksList"></div>
+      <div class="add-link-row" id="addLinkRow">
+        <button class="add-link-btn" id="addLinkBtn">+ Add link</button>
+        <input class="link-inline-input" type="url" id="linkUrlInput" placeholder="Paste a link…" autocomplete="off"/>
+      </div>
+    </div>
+
+    <!-- BOX 4: Preference -->
+    <p class="section-label">Preference</p>
+    <div class="form-box">
+      <!-- Email (read-only) -->
+      <div class="field-row">
+        <span class="row-label">Email</span>
+        <span class="email-val" id="emailDisplay">—</span>
+      </div>
+      <div class="row-divider"></div>
+      <!-- Push Notification -->
+      <div class="field-row">
+        <span class="row-label">Notification</span>
+        <div class="toggle-wrap">
+          <span class="toggle-sub">Push Notification</span>
+          <label class="t-switch">
+            <input type="checkbox" id="notifToggle"/>
+            <span class="t-knob"></span>
+          </label>
+        </div>
+      </div>
+      <div class="row-divider"></div>
+      <!-- Private account -->
+      <div class="field-row">
+        <span class="row-label">Private account</span>
+        <div class="toggle-wrap">
+          <label class="t-switch">
+            <input type="checkbox" id="privateToggle"/>
+            <span class="t-knob"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGOUT BOX -->
+    <div class="form-box logout-box">
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<script type="module">
+  import { auth, db, uploadToCloudinary } from "./config.js";
+  import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
+  import { ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
+  const $ = id => document.getElementById(id);
+
+  const backBtn        = $("backBtn");
+  const saveBtn        = $("saveBtn");
+  const coverWrap      = $("coverWrap");
+  const coverPhoto     = $("coverPhoto");
+  const coverInput     = $("coverInput");
+  const profilePicEdit = $("profilePicEdit");
+  const picInput       = $("picInput");
+  const nameInput      = $("nameInput");
+  const usernameInput  = $("usernameInput");
+  const bioInput       = $("bioInput");
+  const bioWords       = $("bioWords");
+  const locationInput  = $("locationInput");
+  const locSuggestions = $("locSuggestions");
+  const professionInput= $("professionInput");
+  const linksList      = $("linksList");
+  const addLinkBtn     = $("addLinkBtn");
+  const linkUrlInput   = $("linkUrlInput");
+  const emailDisplay   = $("emailDisplay");
+  const notifToggle    = $("notifToggle");
+  const privateToggle  = $("privateToggle");
+  const logoutBtn      = $("logoutBtn");
+
+  let currentUser  = null;
+  let coverFile    = null;
+  let picFile      = null;
+  let existingLinks = {};
+  let locDebounce   = null;
+
+  // ── Back ────────────────────────────────────────────────
+  backBtn.addEventListener("click", () => {
+    if (history.length > 1) history.back();
+    else window.location.href = "/profile";
+  });
+
+  // ── Auth ─────────────────────────────────────────────────
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "/login"; return; }
+    currentUser = user;
+    emailDisplay.textContent = user.email || "—";
+    loadData(user);
+  });
+
+  // ── Load data ─────────────────────────────────────────────
+  function loadData(user) {
+    onValue(ref(db, `users/${user.uid}`), (snap) => {
+      const d = snap.val() || {};
+      nameInput.value       = d.name        || user.displayName || "";
+      usernameInput.value   = (d.username   || "").replace(/^@/, "");
+      bioInput.value        = d.bio         || "";
+      locationInput.value   = d.address     || d.location || "";
+      professionInput.value = d.profession  || "";
+      notifToggle.checked   = d.preferences?.pushNotification ?? false;
+      privateToggle.checked = d.isPrivate   ?? false;
+      updateWordCount();
+
+      if (d.coverPhotoUrl) renderCoverPreview(d.coverPhotoUrl);
+      const ph = d.profilePhotoUrl || user.photoURL || "";
+      if (ph) renderPicPreview(ph);
+
+      existingLinks = d.links || {};
+      renderLinks();
+    }, { onlyOnce: true });
+  }
+
+  // ── Cover ─────────────────────────────────────────────────
+  coverWrap.addEventListener("click", () => coverInput.click());
+  coverInput.addEventListener("change", () => {
+    const f = coverInput.files[0]; if (!f) return;
+    coverFile = f; renderCoverPreview(URL.createObjectURL(f));
+  });
+  function renderCoverPreview(src) {
+    coverPhoto.innerHTML = `<img src="${esc(src)}" alt="Cover">
+      <div class="cover-overlay">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Change Cover</div>`;
+  }
+
+  // ── Profile pic ───────────────────────────────────────────
+  profilePicEdit.addEventListener("click", () => picInput.click());
+  picInput.addEventListener("change", () => {
+    const f = picInput.files[0]; if (!f) return;
+    picFile = f; renderPicPreview(URL.createObjectURL(f));
+  });
+  function renderPicPreview(src) {
+    profilePicEdit.innerHTML = `<img src="${esc(src)}" alt="Profile">
+      <div class="pic-overlay">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>`;
+  }
+
+  // ── Bio word count ─────────────────────────────────────────
+  bioInput.addEventListener("input", () => {
+    const t = bioInput.value.trim();
+    const w = t === "" ? [] : t.split(/\s+/);
+    if (w.length > 150) bioInput.value = w.slice(0, 150).join(" ");
+    updateWordCount();
+  });
+  function updateWordCount() {
+    const t = bioInput.value.trim();
+    bioWords.textContent = t === "" ? 0 : t.split(/\s+/).length;
+  }
+
+  // ── Location — Photon (OpenStreetMap) ───────────────────
+  locationInput.addEventListener("input", () => {
+    clearTimeout(locDebounce);
+    const q = locationInput.value.trim();
+    if (q.length < 2) { hideSuggestions(); return; }
+    locDebounce = setTimeout(() => fetchLocations(q), 400);
+  });
+
+  locationInput.addEventListener("blur", () => {
+    setTimeout(hideSuggestions, 200);
+  });
+
+  async function fetchLocations(q) {
+    locSuggestions.style.display = "block";
+    locSuggestions.innerHTML = `<div class="loc-spinner">Searching…</div>`;
+    try {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`;
+      const res  = await fetch(url);
+      const data = await res.json();
+      const features = data.features || [];
+
+      if (!features.length) {
+        locSuggestions.innerHTML = `<div class="loc-spinner">No results found</div>`;
+        return;
+      }
+
+      locSuggestions.innerHTML = "";
+      features.forEach(f => {
+        const p    = f.properties || {};
+        const name = buildLocName(p);
+        if (!name) return;
+
+        const div  = document.createElement("div");
+        div.className   = "loc-item";
+        div.textContent = name;
+        div.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          locationInput.value = name;
+          hideSuggestions();
+        });
+        locSuggestions.appendChild(div);
+      });
+    } catch (err) {
+      console.error("Location search error:", err);
+      locSuggestions.innerHTML = `<div class="loc-spinner">Could not fetch results</div>`;
+    }
+  }
+
+  function buildLocName(p) {
+    const parts = [];
+    if (p.name)                                  parts.push(p.name);
+    if (p.city    && p.city    !== p.name)       parts.push(p.city);
+    if (p.state   && p.state   !== p.city)       parts.push(p.state);
+    if (p.country)                               parts.push(p.country);
+    return parts.join(", ");
+  }
+
+  function hideSuggestions() {
+    locSuggestions.style.display = "none";
+    locSuggestions.innerHTML = "";
+  }
+
+  // ── Links ─────────────────────────────────────────────────
+  const PLATFORMS = [
+    { match:["facebook.com","fb.com"],  name:"Facebook",  svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>` },
+    { match:["instagram.com"],          name:"Instagram", svg:`<svg viewBox="0 0 24 24" width="22" height="22"><defs><radialGradient id="ig1" cx="30%" cy="107%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><path fill="url(#ig1)" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>` },
+    { match:["twitter.com","x.com"],    name:"Twitter/X", svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#000"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>` },
+    { match:["youtube.com","youtu.be"], name:"YouTube",   svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#FF0000"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>` },
+    { match:["linkedin.com"],           name:"LinkedIn",  svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>` },
+    { match:["tiktok.com"],             name:"TikTok",    svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#000"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.29 6.29 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.87a8.16 8.16 0 0 0 4.77 1.52V7a4.85 4.85 0 0 1-1-.31z"/></svg>` },
+    { match:["github.com"],             name:"GitHub",    svg:`<svg viewBox="0 0 24 24" width="22" height="22" fill="#181717"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>` },
+  ];
+  const GENERIC_SVG = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+
+  function detectPlatform(url) {
+    try {
+      const h = new URL(url).hostname.toLowerCase();
+      for (const p of PLATFORMS) { if (p.match.some(m => h.includes(m))) return p; }
+    } catch {}
+    return { name:"Link", svg: GENERIC_SVG };
+  }
+
+  function renderLinks() {
+    linksList.innerHTML = "";
+    const keys = Object.keys(existingLinks);
+    keys.forEach((key, i) => {
+      const link = existingLinks[key];
+      const p = detectPlatform(link.url);
+      if (i > 0) {
+        const hr = document.createElement("div");
+        hr.className = "row-divider"; hr.style.margin = "0 16px";
+        linksList.appendChild(hr);
+      }
+      const row = document.createElement("div");
+      row.className = "link-item";
+      row.innerHTML = `
+        <div class="link-platform">
+          <span class="link-icon">${p.svg}</span>
+          <span class="link-platform-name">${esc(p.name)}</span>
+        </div>
+        <a class="link-url" href="${esc(link.url)}" target="_blank" rel="noopener">${shortUrl(link.url)}</a>
+        <button class="link-delete" title="Remove">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>`;
+      row.querySelector(".link-delete").addEventListener("click", () => {
+        delete existingLinks[key]; renderLinks();
+      });
+      linksList.appendChild(row);
+    });
+    $("addLinkRow").style.borderTop = keys.length > 0 ? "1px solid var(--border)" : "none";
+  }
+
+  function shortUrl(url) {
+    try { return new URL(url).hostname.replace("www.", ""); } catch { return url; }
+  }
+
+  addLinkBtn.addEventListener("click", addLink);
+  linkUrlInput.addEventListener("keydown", e => { if (e.key === "Enter") addLink(); });
+  function addLink() {
+    let url = linkUrlInput.value.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    existingLinks["link_" + Date.now()] = { url };
+    renderLinks();
+    linkUrlInput.value = "";
+  }
+
+  // ── Cover / Pic helpers already defined above ─────────────
+
+  // ── Logout ───────────────────────────────────────────────
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "/login";
+  });
+
+  // ── Save ──────────────────────────────────────────────────
+  saveBtn.addEventListener("click", async () => {
+    saveBtn.classList.add("loading"); saveBtn.disabled = true;
+    try {
+      const updates = {
+        name:       nameInput.value.trim(),
+        username:   usernameInput.value.trim().replace(/^@/, ""),
+        bio:        bioInput.value.trim(),
+        address:    locationInput.value.trim(),
+        profession: professionInput.value.trim(),
+        isPrivate:  privateToggle.checked,
+        "preferences/pushNotification": notifToggle.checked,
+        links: Object.keys(existingLinks).length ? existingLinks : null,
+      };
+      if (coverFile) {
+        const { url } = await uploadToCloudinary(coverFile, "covers");
+        updates.coverPhotoUrl = url;
+      }
+      if (picFile) {
+        const { url } = await uploadToCloudinary(picFile, "avatars");
+        updates.profilePhotoUrl = url;
+      }
+      await update(ref(db, `users/${currentUser.uid}`), updates);
+      saveBtn.classList.remove("loading");
+      saveBtn.textContent = "Saved ✓";
+      setTimeout(() => window.location.href = "/profile", 900);
+    } catch (err) {
+      console.error(err);
+      saveBtn.classList.remove("loading"); saveBtn.disabled = false;
+      saveBtn.textContent = "Save";
+      alert("Save failed. Please try again.");
+    }
+  });
+
+  function esc(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login � SocialFeed</title>
+  <title>Login — SocialFeed</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -24,7 +24,7 @@
       align-items: center;
     }
 
-    /*  Wrapper  */
+    /* ── Wrapper ── */
     .wrapper {
       width: 100%;
       max-width: 420px;
@@ -34,7 +34,7 @@
       align-items: center;
     }
 
-    /*  Logo  */
+    /* ── Logo ── */
     .logo {
       margin-bottom: 26px;
       width: 100%;
@@ -49,7 +49,7 @@
       display: block;
     }
 
-    /*  Heading  */
+    /* ── Heading ── */
     .welcome {
       font-size: 22px;
       font-weight: 700;
@@ -66,7 +66,7 @@
       font-weight: 400;
     }
 
-    /*  Form  */
+    /* ── Form ── */
     .form {
       width: 100%;
       display: flex;
@@ -74,7 +74,7 @@
       gap: 14px;
     }
 
-    /*  Input group (label + field)  */
+    /* ── Input group (label + field) ── */
     .input-group {
       width: 100%;
       display: flex;
@@ -112,7 +112,7 @@
       color: #c8c8c8;
     }
 
-    /*  Password wrapper (for eye icon positioning)  */
+    /* ── Password wrapper (for eye icon positioning) ── */
     .pw-wrap {
       position: relative;
       width: 100%;
@@ -122,7 +122,7 @@
       padding-right: 48px;
     }
 
-    /*  Password toggle (SVG)  */
+    /* ── Password toggle (SVG) ── */
     .toggle-pw {
       position: absolute;
       right: 13px;
@@ -142,7 +142,7 @@
     .toggle-pw:hover { color: #8A4FF7; }
     .toggle-pw svg   { display: block; }
 
-    /*  Forgot password  */
+    /* ── Forgot password ── */
     .forgot-row {
       display: flex;
       justify-content: flex-end;
@@ -158,7 +158,7 @@
     }
     .forgot-link:hover { opacity: 0.75; text-decoration: underline; }
 
-    /*  Error message  */
+    /* ── Error message ── */
     .error-msg {
       display: none;
       color: #d63b3b;
@@ -171,7 +171,7 @@
       font-weight: 500;
     }
 
-    /*  Login button  */
+    /* ── Login button ── */
     .login-btn {
       width: 100%;
       padding: 10px;
@@ -225,7 +225,7 @@
       to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
-    /*  Sign up link  */
+    /* ── Sign up link ── */
     .signup-text {
       font-size: 13px;
       color: #999;
@@ -241,7 +241,7 @@
     }
     .signup-text a:hover { opacity: 0.8; text-decoration: underline; }
 
-    /*  Illustration � full width  */
+    /* ── Illustration — full width ── */
     .illustration {
       width: 100%;
       margin-top: 80px;
@@ -256,7 +256,7 @@
       pointer-events: none;
     }
 
-    /*  Mobile  */
+    /* ── Mobile ── */
     @media (max-width: 480px) {
       .wrapper  { padding: 34px 20px 0; }
       .welcome  { font-size: 20px; }
@@ -266,7 +266,7 @@
 </head>
 <body>
 
-  <!--  Main wrapper  -->
+  <!-- ── Main wrapper ── -->
   <div class="wrapper">
 
     <!-- Logo -->
@@ -279,7 +279,7 @@
     </div>
 
     <!-- Heading -->
-    <h1 class="welcome">Welcome back! </h1>
+    <h1 class="welcome">Welcome back!</h1>
     <p class="subtitle">Log in to continue your journey</p>
 
     <!-- Form -->
@@ -339,7 +339,7 @@
 
   </div>
 
-  <!-- Illustration � full width -->
+  <!-- Illustration — full width -->
   <div class="illustration">
     <img
       src="https://i.ibb.co.com/DyV9tDW/file-00000000dfb871faa658852ecbb02a4b-1-removebg-preview.png"
@@ -349,7 +349,7 @@
   </div>
 
 
-  <!--  Firebase Logic (ES Module)  -->
+  <!-- ── Firebase Logic (ES Module) ── -->
   <script type="module">
     import { auth } from "./config.js";
     import {
@@ -363,7 +363,7 @@
     const errorMsg      = document.getElementById("errorMsg");
     const togglePw      = document.getElementById("togglePw");
 
-    //  SVG icons 
+    // ── SVG icons ────────────────────────────────────────────
     const EYE_ICON = `
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
            fill="none" stroke="currentColor" stroke-width="2"
@@ -383,12 +383,12 @@
         <line x1="1" y1="1" x2="23" y2="23"/>
       </svg>`;
 
-    //  Already logged in  redirect 
+    // ── Already logged in ─ redirect ────────────────────────
     onAuthStateChanged(auth, (user) => {
       if (user) window.location.href = "/";
     });
 
-    //  Password show / hide 
+    // ── Password show / hide ─────────────────────────────────
     togglePw.addEventListener("click", () => {
       const hidden = passwordInput.type === "password";
       passwordInput.type   = hidden ? "text" : "password";
@@ -396,7 +396,7 @@
       togglePw.setAttribute("aria-label", hidden ? "Hide password" : "Show password");
     });
 
-    //  Error helpers 
+    // ── Error helpers ────────────────────────────────────────
     function showError(msg) {
       errorMsg.textContent   = msg;
       errorMsg.style.display = "block";
@@ -419,7 +419,7 @@
       return map[code] || "Login failed. Please try again.";
     }
 
-    //  Login handler 
+    // ── Login handler ────────────────────────────────────────
     async function handleLogin() {
       clearError();
 

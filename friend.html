@@ -874,6 +874,7 @@ async function loadRequests() {
     // Remove (decline)
     row.querySelector('.btn-remove-request').addEventListener('click', async () => {
       await remove(ref(db, `friendRequests/${currentUid}/${senderUid}`));
+      await remove(ref(db, `sentFriendRequests/${senderUid}/${currentUid}`));
       row.remove();
       updateRequestCount();
       showToast('রিকোয়েস্ট বাতিল করা হয়েছে');
@@ -894,6 +895,7 @@ async function acceptRequest(senderUid, name, avatar, row) {
   await set(ref(db, `friends/${senderUid}/${currentUid}`), { addedAt: Date.now() });
   // রিকোয়েস্ট মুছো
   await remove(ref(db, `friendRequests/${currentUid}/${senderUid}`));
+  await remove(ref(db, `sentFriendRequests/${senderUid}/${currentUid}`));
 
   row.remove();
   updateRequestCount();
@@ -1106,6 +1108,9 @@ document.getElementById('unfriendMenuItem').addEventListener('click', async () =
   // Firebase: উভয় দিক থেকে বন্ধুত্ব মুছো
   await remove(ref(db, `friends/${currentUid}/${uid}`));
   await remove(ref(db, `friends/${uid}/${currentUid}`));
+  // পুরনো রিকোয়েস্ট ট্র্যাক (যেকোনো দিক থেকে হতে পারত) মুছো, নাহলে suggestions-এ আর দেখাবে না
+  await remove(ref(db, `sentFriendRequests/${currentUid}/${uid}`));
+  await remove(ref(db, `sentFriendRequests/${uid}/${currentUid}`));
 
   currentMoreRow.remove();
   friendsData = friendsData.filter(f => f.uid !== uid);

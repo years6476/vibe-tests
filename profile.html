@@ -1308,6 +1308,7 @@
       const card = document.createElement("div");
       card.className = "post-card";
       card.dataset.postId = post.id;
+      card._unsubs = [];
 
       const avatarHtml = userPhotoUrl
         ? `<img src="${esc(userPhotoUrl)}" alt="avatar">`
@@ -1451,36 +1452,40 @@
 
       // ── Like ──
       const likeBtn = card.querySelector(`[data-like="${post.id}"]`);
-      const likeRef = ref(db, `posts/${uid}/${post.id}/likes/${uid}`);
-      onValue(likeRef, (snap) => {
+      const likeRef = ref(db, `reactions/${uid}/${post.id}/${uid}`);
+      const likeCountRef = ref(db, `posts/${uid}/${post.id}/likesCount`);
+      card._unsubs.push(onValue(likeRef, (snap) => {
         if (snap.exists()) {
           likeBtn.classList.add("liked");
         } else {
           likeBtn.classList.remove("liked");
         }
-      });
+      }));
+      card._unsubs.push(onValue(likeCountRef, (snap) => {
+        const countEl = $(`lc-${post.id}`);
+        if (!countEl) return;
+        const n = snap.exists() ? (snap.val() || 0) : 0;
+        countEl.textContent = n > 0 ? n : "";
+      }));
       likeBtn.addEventListener("click", async () => {
         const snap = await new Promise(res => onValue(likeRef, res, { onlyOnce: true }));
+        const countSnap = await get(likeCountRef);
+        const curCount = countSnap.exists() ? (countSnap.val() || 0) : 0;
         if (snap.exists()) {
           await remove(likeRef);
-          const countEl = $(`lc-${post.id}`);
-          const cur = parseInt(countEl.textContent) || 0;
-          const nxt = Math.max(0, cur - 1);
-          countEl.textContent = nxt > 0 ? nxt : "";
+          await set(likeCountRef, Math.max(0, curCount - 1));
         } else {
-          await set(likeRef, true);
-          const countEl = $(`lc-${post.id}`);
-          const cur = parseInt(countEl.textContent) || 0;
-          countEl.textContent = cur + 1;
+          await set(likeRef, { type: "like", ts: Date.now() });
+          await set(likeCountRef, curCount + 1);
         }
       });
 
       // ── Save ──
       const saveBtn = card.querySelector(`[data-save="${post.id}"]`);
       const saveRef = ref(db, `savedPosts/${uid}/${post.id}`);
-      onValue(saveRef, (snap) => {
+      card._unsubs.push(onValue(saveRef, (snap) => {
         saveBtn.classList.toggle("saved", snap.exists());
-      });
+      }));
       saveBtn.addEventListener("click", async () => {
         const snap = await new Promise(res => onValue(saveRef, res, { onlyOnce: true }));
         if (snap.exists()) {
@@ -1496,8 +1501,11 @@
     // ── Load Posts ──
     function loadPosts(uid, photoUrl, name) {
       onValue(ref(db, `posts/${uid}`), (snap) => {
-        // Remove old post cards (keep empty state)
-        postsList.querySelectorAll(".post-card").forEach(c => c.remove());
+        // Detach old cards' listeners, then remove them (keep empty state)
+        postsList.querySelectorAll(".post-card").forEach(c => {
+          (c._unsubs || []).forEach(unsub => unsub());
+          c.remove();
+        });
 
         if (!snap.exists()) {
           postsEmpty.style.display = "flex";
